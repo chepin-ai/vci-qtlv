@@ -64,8 +64,7 @@ for HUB in (VI, CI2):
             s2, body = gh("GET", HUB, "lanes/qtlv/inbox/" + n)
             text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
             tid = re.sub(r"[^A-Za-z0-9-]", "", n)[:40]
-            ans = (f"CLASSIFY: L0(qtlv塔SI0机层收讫·席判位空挂SI1·醒拍可覆写)
-# ANS-{tid}-TOWER03 · {NOW}\n"
+            ans = (f"CLASSIFY: L0(qtlv塔SI0机层收讫·席判位空挂SI1·醒拍可覆写)\n# ANS-{tid}-TOWER03 · {NOW}\n"
                    f"收讫: {HUB} lanes/qtlv/inbox/{n} ({len(text)}B)
 机层判: 入SI5台账; 深判待SI1。
 —— QTLV-TOWER-03 v2 (vci-qtlv正巷塔·双仓面)
