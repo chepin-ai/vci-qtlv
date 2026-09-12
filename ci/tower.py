@@ -29,14 +29,37 @@ def save(p, o):
     os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
     with open(p, "w") as f: json.dump(o, f, ensure_ascii=False, indent=1)
 
+# KEY-DARK警+降级面: 巡首验钥; SCAN-OWN-KEYS闸: 仓面泄钥扫描
+KEY_OK, KEY_DARK = True, None
+try:
+    _rq = urllib.request.Request("https://api.github.com/user", headers={"Authorization": "Bearer " + PAT, "User-Agent": "qtlv-tower03"})
+    urllib.request.urlopen(_rq, timeout=15)
+except Exception as e:
+    KEY_OK = False; KEY_DARK = str(e)[:60]
+leaks = []
+try:
+    files = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split()
+    for fp in files:
+        try: t = open(fp, encoding="utf-8", errors="ignore").read()
+        except Exception: continue
+        if re.search(r"ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}", t): leaks.append(fp)
+except Exception as e: print("scan fail", str(e)[:60])
+if KEY_DARK:
+    save(f"tower/KEY-DARK-{NOW.replace(':','')}.json", {"ts": NOW, "err": KEY_DARK, "mode": "DEGRADED: PAT动作全停, GT动作续行(降级面)"})
+if leaks:
+    save(f"tower/SECURITY-KEYLEAK-{NOW.replace(':','')}.json", {"ts": NOW, "files": leaks, "law": "值永不入文——即报root/qfa并撤钥"})
+print("key_ok", KEY_OK, "leaks", leaks)
 state = load("tower/state.json", {"done": [], "chain": "0"*16, "cycles": 0, "idle": 0, "runs": []})
 done = set(state["done"]); acts = []
 VI = "chepin-ai/vci-inbox"; MIR = "chepin-qi/qtlv-pub"; CANON = "chepin-ai/ai-quant-research"
 
-# ①正巷机答
+# ①正巷机答 (KEY_DARK时降级: 跳过)
+if not KEY_OK: items=[]
+else: pass
 s, lst = gh("GET", VI, "lanes/qtlv/inbox")
 items = [x["name"] for x in lst] if s == 200 else []
-for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done):
+answered_prefix = {re.sub(r"[^A-Za-z0-9-]", "", x)[:24] for x in items if x.startswith(("ANS-", "HUB-ACK"))}
+for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done and re.sub(r"[^A-Za-z0-9-]", "", x)[:24] not in answered_prefix):
     try:
         s2, body = gh("GET", VI, "lanes/qtlv/inbox/" + n)
         text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
