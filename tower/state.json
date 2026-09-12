@@ -21,9 +21,9 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "259dcc04b1a5af51",
- "cycles": 20,
- "idle": 3,
+ "chain": "71d10c515f512aa9",
+ "cycles": 21,
+ "idle": 4,
  "runs": [
   {
    "ts": "2026-09-12T04:18:59Z",
@@ -127,6 +127,10 @@
   },
   {
    "ts": "2026-09-12T15:44:43Z",
+   "acts": []
+  },
+  {
+   "ts": "2026-09-12T15:54:53Z",
    "acts": []
   }
  ]
