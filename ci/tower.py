@@ -56,8 +56,8 @@ VI = "chepin-ai/vci-inbox"; MIR = "chepin-qi/qtlv-pub"; CANON = "chepin-ai/ai-qu
 # ①正巷机答 (KEY_DARK时gh自401→空列, 天然降级无作; 警件已落)
 s, lst = gh("GET", VI, "lanes/qtlv/inbox")
 items = [x["name"] for x in lst] if s == 200 else []
-answered_prefix = {re.sub(r"[^A-Za-z0-9-]", "", x)[:24] for x in items if x.startswith(("ANS-", "HUB-ACK"))}
-for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done and re.sub(r"[^A-Za-z0-9-]", "", x)[:24] not in answered_prefix):
+ans_stripped = [re.sub(r"[^A-Za-z0-9-]", "", x) for x in items if x.startswith(("ANS-", "HUB-ACK"))]
+for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done and not any(re.sub(r"[^A-Za-z0-9-]", "", x)[:20] in a for a in ans_stripped)):
     try:
         s2, body = gh("GET", VI, "lanes/qtlv/inbox/" + n)
         text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
