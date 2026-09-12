@@ -1,0 +1,23 @@
+name: QTLV-TOWER-03
+on:
+  push:
+    paths: ["inbox/**", "relay/**"]
+  repository_dispatch:
+    types: ["qtlv-tower"]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: qtlv-tower03
+  cancel-in-progress: false
+jobs:
+  tower:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AI_FULL_PAT: ${{ secrets.AI_FULL_PAT }}
+          CI_OPS_LINE_KEY: ${{ secrets.CI_OPS_LINE_KEY }}
+        run: python3 ci/tower.py
