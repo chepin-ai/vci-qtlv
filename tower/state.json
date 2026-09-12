@@ -3,6 +3,7 @@
   "ANS-DEMAND-ACTIVATE-60-QTLV-20260911T1936Zmd",
   "ANS-ECHO-91-qtlv-80f5ca19md",
   "ANS-FED-92-TASKS-qtlvmd",
+  "ANS-NOTICE-KEYRES-99-qtlv-20260912T054743Zmd",
   "ANS-OMNI-INJECT-01-qtlv-20260911T185404Zmd",
   "ANS-OTP-VINF-LEDGER-SYNC-01-vinfmd",
   "ANS-QLV-ANS-WAKE-01-2026-09-10md",
@@ -19,9 +20,9 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "ff0e8a0ffed66f06",
- "cycles": 9,
- "idle": 7,
+ "chain": "913fc90c8d28509f",
+ "cycles": 10,
+ "idle": 0,
  "runs": [
   {
    "ts": "2026-09-12T04:18:59Z",
@@ -78,6 +79,12 @@
   {
    "ts": "2026-09-12T10:07:49Z",
    "acts": []
+  },
+  {
+   "ts": "2026-09-12T11:56:58Z",
+   "acts": [
+    "ans:NOTICE-KEYRES-99-qtlv-20260912T054743Z.md"
+   ]
   }
  ]
 }
