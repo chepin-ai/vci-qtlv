@@ -100,8 +100,9 @@ jobs:
               qj={"task":"SELFQ-%s"%LINE,"line":LINE,"output":"outbox/ANS-SELFQ-%s-%s.md"%(LINE,ts),
                   "ask":"自激题:本线当前最高优先未尽一件之机层自查与下一步(从实,级名不滥)","anchor":"SI-AUTOPILOT-01 H5 自激"}
               qf='inbox/TASK-SELFQ-%s-%s.md'%(LINE,ts)
-              open(qf,'w',encoding='utf-8').write('CLASSIFY: L1(自激卡·%s SI1机层自产)\n# TASK-SELFQ · %s\n\n```json\n%s\n```\n'%(LINE,ts,json.dumps(qj,ensure_ascii=False,indent=1)))
-              log['self_excite']=qf
+              qc='CLASSIFY: L1(自激卡·%s SI1机层自产)\n# TASK-SELFQ · %s\n\n```json\n%s\n```\n'%(LINE,ts,json.dumps(qj,ensure_ascii=False,indent=1))
+              rc2=putfile('chepin-ai/vci-'+LINE,qf,qc,'TASK-SELFQ %s 自激(SI-AUTOPILOT-01 H5)'%LINE)
+              log['self_excite']='%s:%s'%(qf,rc2)
           # H4 会话记录
           entry=json.dumps(log,ensure_ascii=False)
           with open('si/auto-log.jsonl','a',encoding='utf-8') as f: f.write(entry+'\n')
