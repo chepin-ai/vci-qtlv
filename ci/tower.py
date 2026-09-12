@@ -1,4 +1,4 @@
-# QTLV-TOWER-03 v1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂
+# QTLV-TOWER-03 v2.0 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
@@ -53,21 +53,26 @@ state = load("tower/state.json", {"done": [], "chain": "0"*16, "cycles": 0, "idl
 done = set(state["done"]); acts = []
 VI = "chepin-ai/vci-inbox"; MIR = "chepin-qi/qtlv-pub"; CANON = "chepin-ai/ai-quant-research"
 
-# ①正巷机答 (KEY_DARK时gh自401→空列, 天然降级无作; 警件已落)
-s, lst = gh("GET", VI, "lanes/qtlv/inbox")
-items = [x["name"] for x in lst] if s == 200 else []
-ans_stripped = [re.sub(r"[^A-Za-z0-9-]", "", x) for x in items if x.startswith(("ANS-", "HUB-ACK"))]
-for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done and not any(re.sub(r"[^A-Za-z0-9-]", "", x)[:20] in a for a in ans_stripped)):
-    try:
-        s2, body = gh("GET", VI, "lanes/qtlv/inbox/" + n)
-        text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
-        tid = re.sub(r"[^A-Za-z0-9-]", "", n)[:40]
-        ans = (f"CLASSIFY: L0(qtlv塔SI0机层收讫·席判位空挂SI1·醒拍可覆写)\n# ANS-{tid}-TOWER03 · {NOW}\n"
-               f"收讫: lanes/qtlv/inbox/{n} ({len(text)}B)\n机层判: 入SI5台账; 深判待SI1。\n—— QTLV-TOWER-03 (vci-qtlv正巷塔)\n")
-        st, _ = put(VI, f"lanes/qtlv/inbox/ANS-{tid}-TOWER03.md", ans, f"TOWER-03 机答 {n[:32]} [skip ci]")
-        if st in (200, 201): acts.append("ans:" + n); done.add("ANS-" + tid)
-    except Exception as e: print("ans fail", n, str(e)[:80])
-
+# ①双仓机答 vci-inbox+ci-inbox (KEY_DARK时gh自401→空列, 天然降级无作; 警件已落)
+CI2 = "chepin-ai/ci-inbox"
+for HUB in (VI, CI2):
+    s, lst = gh("GET", HUB, "lanes/qtlv/inbox")
+    items = [x["name"] for x in lst] if s == 200 else []
+    ans_stripped = [re.sub(r"[^A-Za-z0-9-]", "", x) for x in items if x.startswith(("ANS-", "HUB-ACK"))]
+    for n in sorted(x for x in items if not x.startswith(("ANS-", "ACK-", "HUB-ACK", ".")) and ("ANS-" + re.sub(r"[^A-Za-z0-9-]", "", x)[:40]) not in done and not any(re.sub(r"[^A-Za-z0-9-]", "", x)[:20] in a for a in ans_stripped)):
+        try:
+            s2, body = gh("GET", HUB, "lanes/qtlv/inbox/" + n)
+            text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
+            tid = re.sub(r"[^A-Za-z0-9-]", "", n)[:40]
+            ans = (f"CLASSIFY: L0(qtlv塔SI0机层收讫·席判位空挂SI1·醒拍可覆写)
+# ANS-{tid}-TOWER03 · {NOW}\n"
+                   f"收讫: {HUB} lanes/qtlv/inbox/{n} ({len(text)}B)
+机层判: 入SI5台账; 深判待SI1。
+—— QTLV-TOWER-03 v2 (vci-qtlv正巷塔·双仓面)
+")
+            st, _ = put(HUB, f"lanes/qtlv/inbox/ANS-{tid}-TOWER03.md", ans, f"TOWER-03 机答 {n[:32]} [skip ci]")
+            if st in (200, 201): acts.append("ans:" + HUB[-9:] + ":" + n); done.add("ANS-" + tid)
+        except Exception as e: print("ans fail", HUB, n, str(e)[:80])
 # ②relay: 镜仓outbox-relay → 正所 (ECHO/ANS-FED→lanes/qfa/inbox; 余→ lanes/qtlv/inbox)
 s, rl = gh("GET", MIR, "outbox-relay", token=GT)
 for x in (rl if s == 200 else []):
@@ -94,6 +99,30 @@ for d in ("notes", "docs"):
             if st in (200, 201): acts.append("canon:" + n); done.add("canon:" + n)
         except Exception as e: print("canon fail", n, str(e)[:80])
 
+# ④八面轮扫 OCTA-QTLV-01: 网动即燃(面变=激件,idle清零+录激)
+def _cnt(repo, path, token=None):
+    s, l = gh("GET", repo, path, token=token)
+    return len(l) if s == 200 and isinstance(l, list) else -1
+def _head(repo):
+    u = "https://api.github.com/repos/" + repo + "/commits?per_page=1"
+    rq = urllib.request.Request(u, headers={"Authorization": "Bearer " + PAT, "Accept": "application/vnd.github+json", "User-Agent": "qtlv-tower03"})
+    try:
+        with urllib.request.urlopen(rq, timeout=20) as r: return json.loads(r.read().decode())[0]["sha"][:8]
+    except Exception: return "?"
+faces = {"板面差集": [_cnt(VI, "公告板"), _cnt(CI2, "公告板")],
+         "毂塔尖": _head(VI),
+         "receipts尖": _cnt("chepin-ai/vci-qtlv", "receipts"),
+         "水位双家差": [_cnt(VI, "lanes/qtlv/inbox"), _cnt(CI2, "lanes/qtlv/inbox")],
+         "NONCE专册": _cnt(CANON, "quantum/qtlv/results"),
+         "threads尖": _cnt(CI2, "讨论室/threads"),
+         "QSET庭尖": _head("chepin-ai/vci-qfa"),
+         "W12t进程态": _head("chepin-ai/vci-usrm")}
+prev = state.get("faces", {})
+delta = [k for k in faces if prev.get(k) != faces[k]]
+if delta:
+    acts.append("octa:Δ" + "|".join(delta)); state["idle"] = 0
+    save(f"tower/octa-{NOW.replace(':','')}.json", {"ts": NOW, "law": "OCTA-QTLV-01 八面轮扫·网动即燃", "delta": delta, "faces": faces, "prev": prev})
+state["faces"] = faces
 state["cycles"] += 1
 state["idle"] = 0 if acts else state.get("idle", 0) + 1
 state["done"] = sorted(done)[-600:]
