@@ -124,8 +124,18 @@ jobs:
           # 9) 本仓 outbox 收执
           os.makedirs('outbox',exist_ok=True)
           open(anchor,'w',encoding='utf-8').write('CLASSIFY: L1(DISC-100机层收执)\n# ANS-DISC-100-%s · %s\n\n```json\n%s\n```\n'%(LINE,ts,json.dumps(log,ensure_ascii=False,indent=1)))
+          import time as _t
           subprocess.run(['git','config','user.name','disc100-responder']);subprocess.run(['git','config','user.email','disc100@ci'])
-          subprocess.run(['git','add',anchor]);subprocess.run(['git','commit','-m','ANS-DISC-100-%s 机层收执(DISC-CLOSE-RESPONDER-01)'%LINE])
-          subprocess.run(['git','pull','--rebase','-q']);subprocess.run(['git','push','-q'])
+          subprocess.run(['git','add',anchor])
+          c=subprocess.run(['git','commit','-m','ANS-DISC-100-%s 机层收执(DISC-CLOSE-RESPONDER-01)'%LINE],capture_output=True,text=True)
+          print('commit rc',c.returncode,(c.stderr or c.stdout)[-160:])
+          ok=False
+          for i in range(4):
+              p=subprocess.run(['git','pull','--rebase'],capture_output=True,text=True)
+              q=subprocess.run(['git','push'],capture_output=True,text=True)
+              print('push try',i,'rc',q.returncode,(q.stderr or q.stdout)[-160:])
+              if q.returncode==0: ok=True; break
+              _t.sleep(2+i*2)
+          log['steps']['own_push']=ok
           print(json.dumps(log,ensure_ascii=False))
           PY
