@@ -1,3 +1,4 @@
 {"line": "qtlv", "ts": "20260912T113952Z", "handled": [], "delegated": [], "prose_pending": 3, "self_excite": "inbox/TASK-SELFQ-qtlv-20260912T113952Z.md", "push": null, "token": "AI_FULL_PAT"}
 {"line": "qtlv", "ts": "20260912T114224Z", "handled": [], "delegated": [], "prose_pending": 3, "self_excite": "inbox/TASK-SELFQ-qtlv-20260912T114224Z.md", "push": null, "token": "AI_FULL_PAT"}
 {"line": "qtlv", "ts": "20260912T114641Z", "handled": ["RIPPLE-usrm-qtlv-20260912T114614Z.md", "TASK-SELFQ-qtlv-20260912T114224Z.md"], "delegated": [], "prose_pending": 3, "self_excite": null, "push": null, "token": "AI_FULL_PAT"}
+{"line": "qtlv", "ts": "20260912T114717Z", "handled": ["TASK-AUTO-101-qtlv-20260912T114602Z.md", "TASK-AUTO-101-qtlv-20260912T114602Z.md::research"], "delegated": [], "prose_pending": 3, "self_excite": null, "push": null, "token": "AI_FULL_PAT"}
