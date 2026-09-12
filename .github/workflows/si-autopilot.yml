@@ -112,7 +112,7 @@ jobs:
           open(stf,'w').write(json.dumps(st,ensure_ascii=False))
           import time as _t
           subprocess.run(['git','config','user.name','si-autopilot']);subprocess.run(['git','config','user.email','autopilot@ci'])
-          subprocess.run(['git','add','si','outbox'])
+          subprocess.run(['git','add','si','outbox','inbox'])
           c=subprocess.run(['git','commit','-m','SI-AUTOPILOT拍 %s 处理%d 转派%d'%(ts,len(log['handled']),len(log['delegated']))],capture_output=True,text=True)
           print('commit rc',c.returncode)
           if c.returncode==0:
