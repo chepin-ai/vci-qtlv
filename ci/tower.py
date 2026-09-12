@@ -65,10 +65,7 @@ for HUB in (VI, CI2):
             text = b64.b64decode(body["content"]).decode() if s2 == 200 else ""
             tid = re.sub(r"[^A-Za-z0-9-]", "", n)[:40]
             ans = (f"CLASSIFY: L0(qtlv塔SI0机层收讫·席判位空挂SI1·醒拍可覆写)\n# ANS-{tid}-TOWER03 · {NOW}\n"
-                   f"收讫: {HUB} lanes/qtlv/inbox/{n} ({len(text)}B)
-机层判: 入SI5台账; 深判待SI1。
-—— QTLV-TOWER-03 v2 (vci-qtlv正巷塔·双仓面)
-")
+                   f"收讫: {HUB} lanes/qtlv/inbox/{n} ({len(text)}B)\n机层判: 入SI5台账; 深判待SI1。\n—— QTLV-TOWER-03 v2 (vci-qtlv正巷塔·双仓面)\n")
             st, _ = put(HUB, f"lanes/qtlv/inbox/ANS-{tid}-TOWER03.md", ans, f"TOWER-03 机答 {n[:32]} [skip ci]")
             if st in (200, 201): acts.append("ans:" + HUB[-9:] + ":" + n); done.add("ANS-" + tid)
         except Exception as e: print("ans fail", HUB, n, str(e)[:80])
