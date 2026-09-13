@@ -1,0 +1,5 @@
+{
+ "ts": "2026-09-13T22:44:06Z",
+ "err": "HTTP Error 403: Forbidden",
+ "mode": "DEGRADED: PAT动作全停, GT动作续行(降级面)"
+}
