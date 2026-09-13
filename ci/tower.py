@@ -1,4 +1,4 @@
-# QTLV-TOWER-03 v2.2 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.2.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
@@ -144,9 +144,22 @@ try:
                     elif typ == "nudge":
                         if it.get("nudged"): st = "already-nudged(幂等不重发)"
                         else:
-                            card = ("CLASSIFY: L1(NUDGE-CLAIMS 机催·qtlv塔)\n```json\n" + json.dumps({"task": "NUDGE-CLAIMS", "from": "qtlv-tower", "claim": it.get("id"), "msg": it.get("msg", "")}, ensure_ascii=False) + "\n```\n——QTLV-TOWER-03 v2.2 债自驱腿")
-                            stn, _ = put(VI, "lanes/" + it.get("lane", "qfa") + "/inbox/NUDGE-CLAIMS-qtlv-" + re.sub(r"[^A-Za-z0-9-]", "", it.get("id", "x"))[:24] + ".md", card, "TOWER-03 债自驱 NUDGE [skip ci]")
-                            st = "nudged:" + str(stn)
+                            cl_state = ""
+                            s_cl, clb = gh("GET", CANON, "quantum/qtlv/results/claims_qtlv.json")
+                            if s_cl == 200:
+                                try:
+                                    for cit in json.loads(b64.b64decode(clb["content"]).decode()).get("items", []):
+                                        if it.get("claim_key") and it.get("claim_key") in cit.get("id", ""): cl_state = cit.get("state", "")
+                                except Exception: pass
+                            if cl_state and any(k in cl_state for k in ("committed", "closed", "verified", "done", "answered", "swept")):
+                                st = "skipped:claims已诺/闭·防裸催(" + cl_state[:36] + ")"
+                            else:
+                                card = ("CLASSIFY: L1(NUDGE-CLAIMS 机催·qtlv塔)\n```json\n" + json.dumps({"task": "NUDGE-CLAIMS", "from": "qtlv-tower", "claim": it.get("id"), "msg": it.get("msg", "")}, ensure_ascii=False) + "\n```\n——QTLV-TOWER-03 v2.2.1 债自驱腿")
+                                pth = "lanes/" + it.get("lane", "qfa") + "/inbox/NUDGE-CLAIMS-qtlv-" + re.sub(r"[^A-Za-z0-9-]", "", it.get("id", "x"))[:24] + ".md"
+                                stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE [skip ci]")
+                                if stn == 409:
+                                    time.sleep(5); stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE retry409 [skip ci]")
+                                st = "nudged:" + str(stn)
                     rep["items"].append({"id": it.get("id"), "type": typ, "machine_status": st})
             except Exception as e: rep["parse_err"] = str(e)[:80]
         else:
@@ -169,6 +182,21 @@ try:
             "pending_vci": pend[:30], "pending_ci": pend2[:30], "idle": state["idle"],
             "faces_delta": delta if 'delta' in dir() else []}, ensure_ascii=False) + "\n")
 except Exception as e: print("mirror fail", str(e)[:80])
+# ⑦DIGEST-LOOP: 反向驱动席档(SI5/机→SI1一档总览·醒即读·正反向环闭)
+try:
+    _p = pend if 'pend' in dir() else []; _p2 = pend2 if 'pend2' in dir() else []; _d = delta if 'delta' in dir() else []
+    dg = ["CLASSIFY: L1(seat-digest 机→席一档总览·QTLV-TOWER-03 v2.2.1)", "# seat-digest · " + NOW,
+        "- cycle: " + str(state["cycles"] + 1) + " · idle: " + str(state["idle"]) + " · acts: " + str(len(acts)),
+        "- pending_vci: " + str(len(_p)) + " " + json.dumps(_p[:8], ensure_ascii=False),
+        "- pending_ci: " + str(len(_p2)) + " " + json.dumps(_p2[:8], ensure_ascii=False),
+        "- faces_delta: " + json.dumps(_d, ensure_ascii=False)]
+    if 'rep' in dir() and isinstance(rep, dict) and rep.get("items"):
+        dg.append("- wake: " + rep.get("wake", ""))
+        for itd in rep.get("items", [])[:12]:
+            dg.append("  - " + str(itd.get("id")) + " [" + str(itd.get("type")) + "] " + str(itd.get("machine_status"))[:110])
+    dg.append("——机层呈席·不代判(代产闭律)")
+    save("tower/seat-digest.md", "\n".join(dg))
+except Exception as e: print("digest fail", str(e)[:80])
 state["cycles"] += 1
 state["idle"] = 0 if acts else state.get("idle", 0) + 1
 state["done"] = sorted(done)[-600:]
