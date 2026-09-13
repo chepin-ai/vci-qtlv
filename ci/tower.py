@@ -1,4 +1,4 @@
-# QTLV-TOWER-03 v2.0 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
@@ -119,6 +119,18 @@ if delta:
     acts.append("octa:Δ" + "|".join(delta)); state["idle"] = 0
     save(f"tower/octa-{NOW.replace(':','')}.json", {"ts": NOW, "law": "OCTA-QTLV-01 八面轮扫·网动即燃", "delta": delta, "faces": faces, "prev": prev})
 state["faces"] = faces
+# ⑤机镜 MIRROR-LOOP(双镜制保底·塔驱每拍必有·无Q原文有机读态)
+try:
+    s_m, lst_m = gh("GET", VI, "lanes/qtlv/inbox")
+    s_m2, lst_m2 = gh("GET", CI2, "lanes/qtlv/inbox")
+    pend = [x["name"] for x in lst_m if not x["name"].startswith(("ANS-", "HUB-ACK", "ACK-", "."))] if s_m == 200 else []
+    pend2 = [x["name"] for x in lst_m2 if not x["name"].startswith(("ANS-", "HUB-ACK", "ACK-", "."))] if s_m2 == 200 else []
+    os.makedirs("receipts/session-mirror", exist_ok=True)
+    with open("receipts/session-mirror/mirror.jsonl", "a", encoding="utf-8") as mf:
+        mf.write(json.dumps({"ts": NOW, "cycle": state["cycles"] + 1, "acts": acts[:20], "n_acts": len(acts),
+            "pending_vci": pend[:30], "pending_ci": pend2[:30], "idle": state["idle"],
+            "faces_delta": delta if 'delta' in dir() else []}, ensure_ascii=False) + "\n")
+except Exception as e: print("mirror fail", str(e)[:80])
 state["cycles"] += 1
 state["idle"] = 0 if acts else state.get("idle", 0) + 1
 state["done"] = sorted(done)[-600:]
