@@ -1,4 +1,4 @@
-# QTLV-TOWER-03 v2.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.1.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
@@ -107,7 +107,7 @@ def _head(repo):
     except Exception: return "?"
 faces = {"板面差集": [_cnt(VI, "公告板"), _cnt(CI2, "公告板")],
          "毂塔尖": _head(VI),
-         "receipts尖": _cnt("chepin-ai/vci-qtlv", "receipts"),
+         "receipts尖": [_cnt("chepin-ai/vci-qfa", "receipts"), _cnt("chepin-ai/vci-usrm", "receipts")],  # 各线仓面(他线)·自仓receipts自激环v2.1.1除外
          "水位双家差": [_cnt(VI, "lanes/qtlv/inbox"), _cnt(CI2, "lanes/qtlv/inbox")],
          "NONCE专册": _cnt(CANON, "quantum/qtlv/results"),
          "threads尖": _cnt(CI2, "讨论室/threads"),
