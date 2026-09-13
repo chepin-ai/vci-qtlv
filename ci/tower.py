@@ -1,7 +1,7 @@
-# QTLV-TOWER-03 v2.2.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.3 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
-import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
+import os, re, json, time, hmac, hashlib, subprocess, datetime, math, base64 as b64
 import urllib.request, urllib.parse
 NOW = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 PAT = os.environ.get("AI_FULL_PAT") or os.environ.get("CI_OPS_LINE_KEY") or os.environ.get("GH_TOKEN", "")
@@ -155,11 +155,16 @@ try:
                                 st = "skipped:claims已诺/闭·防裸催(" + cl_state[:36] + ")"
                             else:
                                 card = ("CLASSIFY: L1(NUDGE-CLAIMS 机催·qtlv塔)\n```json\n" + json.dumps({"task": "NUDGE-CLAIMS", "from": "qtlv-tower", "claim": it.get("id"), "msg": it.get("msg", "")}, ensure_ascii=False) + "\n```\n——QTLV-TOWER-03 v2.2.1 债自驱腿")
-                                pth = "lanes/" + it.get("lane", "qfa") + "/inbox/NUDGE-CLAIMS-qtlv-" + re.sub(r"[^A-Za-z0-9-]", "", it.get("id", "x"))[:24] + ".md"
-                                stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE [skip ci]")
-                                if stn == 409:
-                                    time.sleep(5); stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE retry409 [skip ci]")
-                                st = "nudged:" + str(stn)
+                                ck_ = it.get("claim_key") or it.get("id", "x")
+                                nl_ = state.get("nudge_log", {})
+                                if ck_ in nl_ and state["cycles"] - nl_[ck_] < 12: st = "skipped:臂距<12拍(lgt谏·梯疏)"
+                                else:
+                                    pth = "lanes/" + it.get("lane", "qfa") + "/inbox/NUDGE-CLAIMS-qtlv-" + re.sub(r"[^A-Za-z0-9-]", "", it.get("id", "x"))[:24] + ".md"
+                                    stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE [skip ci]")
+                                    if stn == 409:
+                                        time.sleep(5); stn, _ = put(VI, pth, card, "TOWER-03 债自驱 NUDGE retry409 [skip ci]")
+                                    if stn in (200, 201): state.setdefault("nudge_log", {})[ck_] = state["cycles"]
+                                    st = "nudged:" + str(stn)
                     rep["items"].append({"id": it.get("id"), "type": typ, "machine_status": st})
             except Exception as e: rep["parse_err"] = str(e)[:80]
         else:
@@ -197,6 +202,27 @@ try:
     dg.append("——机层呈席·不代判(代产闭律)")
     save("tower/seat-digest.md", "\n".join(dg))
 except Exception as e: print("digest fail", str(e)[:80])
+# ⑧ENTROPY-LOOP: 场熵面(每6拍一扫·SI-FIELD-01实施·熵剖面生债FINDING)
+try:
+    if state["cycles"] % 6 == 0:
+        LNS = ["qlv-lab", "qtlv", "cfts", "lvlu", "ucif2", "usrm", "vinf", "cisvr", "ci-pg", "qfa", "qgl", "qlv", "lgt", "ai"]
+        def _src(fn):
+            tk = re.split(r"[^A-Za-z0-9]+", fn.lower())
+            for ln in LNS:
+                if ln in tk: return ln
+            return None
+        fld = {}
+        for HB in (VI, CI2):
+            for d in LNS:
+                s_l, ll = gh("GET", HB, "lanes/" + d + "/inbox")
+                if s_l == 200:
+                    for x in ll:
+                        so = _src(x["name"])
+                        if so and so != d: fld[so + ">" + d] = fld.get(so + ">" + d, 0) + 1
+        tt = sum(fld.values()); hh = -sum((v / tt) * math.log2(v / tt) for v in fld.values() if v) if tt else 0
+        save(f"tower/entropy-{NOW.replace(':','')}.json", {"ts": NOW, "edges": tt, "H_bits": round(hh, 3), "law": "ENTROPY-PROFILE 场熵面每6拍·剖面生债"})
+        acts.append("entropy")
+except Exception as e: print("entropy fail", str(e)[:80])
 state["cycles"] += 1
 state["idle"] = 0 if acts else state.get("idle", 0) + 1
 state["done"] = sorted(done)[-600:]
