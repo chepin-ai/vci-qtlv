@@ -1,10 +1,10 @@
-# QTLV-TOWER-03 v2.3 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.3.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, math, base64 as b64
 import urllib.request, urllib.parse
 NOW = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-PAT = os.environ.get("AI_FULL_PAT") or os.environ.get("CI_OPS_LINE_KEY") or os.environ.get("GH_TOKEN", "")
+PAT = os.environ.get("FINE_OWN_PAT_QTL") or os.environ.get("AI_FULL_PAT") or os.environ.get("CI_OPS_LINE_KEY") or os.environ.get("GH_TOKEN", "")  # v2.3.1 专钥FINE_OWN_PAT_QTL居首(90天/最小权限),余为备援
 GT = os.environ.get("GH_TOKEN", "")
 def gh(method, repo, path, data=None, token=None):
     u = "https://api.github.com/repos/" + repo + "/contents/" + urllib.parse.quote(path)
