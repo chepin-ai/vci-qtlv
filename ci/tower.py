@@ -1,4 +1,4 @@
-# QTLV-TOWER-03 v2.1.1 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.2 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, base64 as b64
@@ -119,6 +119,44 @@ if delta:
     acts.append("octa:Δ" + "|".join(delta)); state["idle"] = 0
     save(f"tower/octa-{NOW.replace(':','')}.json", {"ts": NOW, "law": "OCTA-QTLV-01 八面轮扫·网动即燃", "delta": delta, "faces": faces, "prev": prev})
 state["faces"] = faces
+# ⑥WAKE-LOOP: self-wake机层消费(SI3→SI2/SI0驱动迭代,不候SI1;席件标seat-only不伪消费)
+try:
+    s_w, lw = gh("GET", CANON, "quantum/qtlv/.ci-inbox")
+    wfs = sorted(x["name"] for x in lw if x["name"].startswith("self-wake")) if s_w == 200 else []
+    if wfs:
+        latest = wfs[-1]
+        s_w2, wb = gh("GET", CANON, "quantum/qtlv/.ci-inbox/" + latest)
+        wtext = b64.b64decode(wb["content"]).decode() if s_w2 == 200 else ""
+        m = re.search(r"```json\s*(\{.*?\})\s*```", wtext, re.S)
+        rep = {"ts": NOW, "wake": latest, "items": []}
+        if m:
+            try:
+                wdata = json.loads(m.group(1))
+                for it in wdata.get("items", []):
+                    typ = it.get("type"); st = "seat-only(待SI1,不伪消费)"
+                    if typ == "collect":
+                        s_c, lc = gh("GET", it.get("hub", VI), it.get("target", ""))
+                        hits = [x["name"] for x in lc if it.get("match", "") in x["name"]] if s_c == 200 else []
+                        st = json.dumps({"arrived": hits[:10], "n": len(hits)}, ensure_ascii=False)
+                    elif typ == "check":
+                        s_c, _ = gh("GET", it.get("hub", "chepin-ai/vci-qtlv"), it.get("target", ""))
+                        st = "exists" if s_c == 200 else "missing"
+                    elif typ == "nudge":
+                        if it.get("nudged"): st = "already-nudged(幂等不重发)"
+                        else:
+                            card = ("CLASSIFY: L1(NUDGE-CLAIMS 机催·qtlv塔)\n```json\n" + json.dumps({"task": "NUDGE-CLAIMS", "from": "qtlv-tower", "claim": it.get("id"), "msg": it.get("msg", "")}, ensure_ascii=False) + "\n```\n——QTLV-TOWER-03 v2.2 债自驱腿")
+                            stn, _ = put(VI, "lanes/" + it.get("lane", "qfa") + "/inbox/NUDGE-CLAIMS-qtlv-" + re.sub(r"[^A-Za-z0-9-]", "", it.get("id", "x"))[:24] + ".md", card, "TOWER-03 债自驱 NUDGE [skip ci]")
+                            st = "nudged:" + str(stn)
+                    rep["items"].append({"id": it.get("id"), "type": typ, "machine_status": st})
+            except Exception as e: rep["parse_err"] = str(e)[:80]
+        else:
+            rep["note"] = "prose-wake机读块缺:席层件(t42起机读化)"
+        save(f"tower/wake-report-{NOW.replace(':','')}.json", rep)
+        os.makedirs("tower", exist_ok=True)
+        with open("tower/wake-chain.jsonl", "a", encoding="utf-8") as wf:
+            wf.write(json.dumps(rep, ensure_ascii=False) + "\n")
+        acts.append("wake:" + latest)
+except Exception as e: print("wake fail", str(e)[:80])
 # ⑤机镜 MIRROR-LOOP(双镜制保底·塔驱每拍必有·无Q原文有机读态)
 try:
     s_m, lst_m = gh("GET", VI, "lanes/qtlv/inbox")
