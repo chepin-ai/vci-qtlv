@@ -43,16 +43,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "d685616418baf533",
- "cycles": 262,
+ "chain": "c8e5c3d0addd9ac5",
+ "cycles": 263,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-14T04:53:40Z",
-   "acts": [
-    "octa:Δ板面差集|毂塔尖|receipts尖|水位双家差|NONCE专册|threads尖|QSET庭尖|W12t进程态"
-   ]
-  },
   {
    "ts": "2026-09-14T05:03:54Z",
    "acts": []
@@ -420,26 +414,32 @@
     "octa:Δ毂塔尖|W12t进程态",
     "wake:self-wake-qtlv-t49.md"
    ]
+  },
+  {
+   "ts": "2026-09-14T15:10:08Z",
+   "acts": [
+    "octa:Δ板面差集|毂塔尖|receipts尖|水位双家差|NONCE专册|threads尖|QSET庭尖|W12t进程态"
+   ]
   }
  ],
  "faces": {
   "板面差集": [
-   40,
-   1000
+   -1,
+   -1
   ],
-  "毂塔尖": "a7c01113",
+  "毂塔尖": "?",
   "receipts尖": [
-   3,
-   4
+   -1,
+   -1
   ],
   "水位双家差": [
-   52,
-   40
+   -1,
+   -1
   ],
-  "NONCE专册": 66,
-  "threads尖": 85,
-  "QSET庭尖": "9ff07964",
-  "W12t进程态": "16ef5667"
+  "NONCE专册": -1,
+  "threads尖": -1,
+  "QSET庭尖": "?",
+  "W12t进程态": "?"
  },
  "nudge_log": {
   "usrm-CONSULT未诺": 145,
