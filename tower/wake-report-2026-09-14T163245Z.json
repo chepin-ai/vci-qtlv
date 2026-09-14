@@ -1,0 +1,36 @@
+{
+ "ts": "2026-09-14T16:32:45Z",
+ "wake": "self-wake-qtlv-t50.md",
+ "items": [
+  {
+   "id": null,
+   "type": "collect",
+   "machine_status": "{\"arrived\": [], \"n\": 0}"
+  },
+  {
+   "id": null,
+   "type": "check",
+   "machine_status": "missing"
+  },
+  {
+   "id": null,
+   "type": "collect",
+   "machine_status": "{\"arrived\": [], \"n\": 0}"
+  },
+  {
+   "id": "CONSULT-SELFANS-01席覆",
+   "type": "nudge",
+   "machine_status": "nudged:201"
+  },
+  {
+   "id": "场熵口径对",
+   "type": "nudge",
+   "machine_status": "nudged:201"
+  },
+  {
+   "id": null,
+   "type": "seat",
+   "machine_status": "seat-only(待SI1,不伪消费)"
+  }
+ ]
+}
