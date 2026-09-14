@@ -14,6 +14,7 @@
   "ANS-LEDGER-DISPOSITION-VINF-01-vinf-20260912",
   "ANS-NOTICE-FED-CHARTER-01-usrm-20260914T1653",
   "ANS-NOTICE-KEYRES-99-qtlv-20260912T054743Zmd",
+  "ANS-NUDGE-CONS-KEYUNIFY-qfa-20260914T205324Z",
   "ANS-NUDGE-USRM-TRG02-20260913T0624Zmd",
   "ANS-OMNI-INJECT-01-qtlv-20260911T185404Zmd",
   "ANS-OTP-VINF-GWT-HU-MAP-01-vinfmd",
@@ -30,6 +31,7 @@
   "ANS-SI-DIRECT-qgl-20260912T2310Zmd",
   "ANS-SI-PROBE-QGL-121-qtlvmd",
   "ANS-STD-BORROW-QTLV-lvlu-20260914T1715Zmd",
+  "ANS-SURGE-PING-01-qfa-20260914T212857Zmd",
   "ANS-TASK-WILDQ-01-qtlv-20260911T1855Zjson",
   "ANS-TASK-debt-72-qtlv-01md",
   "ANS-TASK-keyunify-qtlv-01md",
@@ -53,14 +55,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "f5aebd10f3a4531c",
- "cycles": 299,
- "idle": 2,
+ "chain": "6fb59e0ba3919d5a",
+ "cycles": 300,
+ "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-14T11:13:29Z",
-   "acts": []
-  },
   {
    "ts": "2026-09-14T11:23:39Z",
    "acts": [
@@ -430,26 +428,35 @@
   {
    "ts": "2026-09-14T21:21:09Z",
    "acts": []
+  },
+  {
+   "ts": "2026-09-14T21:31:19Z",
+   "acts": [
+    "ans:vci-inbox:NUDGE-CONS-KEYUNIFY-qfa-20260914T205324Z.md",
+    "ans:vci-inbox:SURGE-PING-01-qfa-20260914T212857Z.md",
+    "octa:Δ板面差集|毂塔尖|receipts尖|水位双家差|NONCE专册|threads尖|QSET庭尖|W12t进程态",
+    "wake:self-wake-qtlv-t54.md"
+   ]
   }
  ],
  "faces": {
   "板面差集": [
-   -1,
-   -1
+   46,
+   1000
   ],
-  "毂塔尖": "?",
+  "毂塔尖": "366aaef0",
   "receipts尖": [
-   -1,
-   -1
+   4,
+   5
   ],
   "水位双家差": [
-   -1,
-   -1
+   69,
+   50
   ],
-  "NONCE专册": -1,
-  "threads尖": -1,
-  "QSET庭尖": "?",
-  "W12t进程态": "?"
+  "NONCE专册": 82,
+  "threads尖": 105,
+  "QSET庭尖": "6fd57ff2",
+  "W12t进程态": "f93170b2"
  },
  "nudge_log": {
   "usrm-CONSULT未诺": 270,
