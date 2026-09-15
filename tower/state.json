@@ -55,17 +55,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "5fca26ed282aa3c9",
- "cycles": 325,
+ "chain": "f6fcb32311ac1feb",
+ "cycles": 326,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-14T15:40:57Z",
-   "acts": [
-    "octa:Δ毂塔尖|threads尖",
-    "wake:self-wake-qtlv-t49.md"
-   ]
-  },
   {
    "ts": "2026-09-14T15:51:50Z",
    "acts": [
@@ -430,6 +423,13 @@
     "wake:self-wake-qtlv-t54.md",
     "entropy"
    ]
+  },
+  {
+   "ts": "2026-09-15T01:57:56Z",
+   "acts": [
+    "octa:Δ毂塔尖|W12t进程态",
+    "wake:self-wake-qtlv-t54.md"
+   ]
   }
  ],
  "faces": {
@@ -437,7 +437,7 @@
    46,
    1000
   ],
-  "毂塔尖": "b49a31dc",
+  "毂塔尖": "b3fd6379",
   "receipts尖": [
    4,
    5
@@ -449,7 +449,7 @@
   "NONCE专册": 82,
   "threads尖": 107,
   "QSET庭尖": "297ea2f0",
-  "W12t进程态": "1270ad5d"
+  "W12t进程态": "8809bc1c"
  },
  "nudge_log": {
   "usrm-CONSULT未诺": 270,
