@@ -1,0 +1,18 @@
+{
+ "probe": "qtlv-probe-pub",
+ "ts": "2026-09-15T08:34:03Z",
+ "results": {
+  "KIMI_NEW": "ABSENT",
+  "KIMI_1": "ABSENT",
+  "KIMI_2": "ABSENT",
+  "KIMI_3": "ABSENT",
+  "DEEPSEEK_1": "ABSENT",
+  "DEEPSEEK_2": "ABSENT",
+  "DEEPSEEK_3": "ABSENT",
+  "ORIGINQC_main": "ABSENT",
+  "ORIGINQC_foxmail": "ABSENT",
+  "ORIGINQC_spare": "ABSENT",
+  "ORIGINQC_thai68": "ABSENT",
+  "QUAFU_sdk": "IMPORT_FAIL ModuleNotFoundError"
+ }
+}
