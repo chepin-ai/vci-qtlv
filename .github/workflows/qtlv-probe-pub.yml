@@ -1,0 +1,87 @@
+name: qtlv-probe-pub
+# qtlv T55: 公域探针(billing闸时代)——vci-qtlv=公域仓,Actions免私域额度
+# 值零打印; ABSENT容忍(密封盒注入后即活); 量子平台只读探,零电路零机时
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: deps
+        run: pip install --quiet requests 2>&1 | tail -1; pip install --quiet pyqpanda 2>&1 | tail -1 || echo PYQPANDA_INSTALL_FAIL; pip install --quiet quafu 2>&1 | tail -1 || echo QUAFU_INSTALL_FAIL
+      - name: probe
+        env:
+          KIMI0: ${{ secrets.KIMI_API_KEY }}
+          KIMI1: ${{ secrets.API_KIMI_KEY_1 }}
+          KIMI2: ${{ secrets.API_KIMI_KEY_2 }}
+          KIMI3: ${{ secrets.API_KIMI_KEY_3 }}
+          DS1: ${{ secrets.API_DEEPSEEK_KEY_1 }}
+          DS2: ${{ secrets.API_DEEPSEEK_KEY_2 }}
+          DS3: ${{ secrets.API_DEEPSEEK_KEY_3 }}
+          OQ0: ${{ secrets.ORIGINQC_API_KEY }}
+          OQ_F: ${{ secrets.ORIGINQC_API_KEY_FOXMAIL }}
+          OQ_S: ${{ secrets.ORIGINQC_API_KEY_SPARE }}
+          OQ_T: ${{ secrets.ORIGINQC_API_KEY_THAI68 }}
+          QUAFU: ${{ secrets.QUAFU_API_KEY }}
+          QR64: ${{ secrets.QUANTUMRINGS_API_KEY_64 }}
+          QR128: ${{ secrets.QUANTUMRINGS_API_KEY_128 }}
+        run: |
+          cat > probe.py <<'PYEOF'
+          import os, json, time
+          R = {"probe": "qtlv-probe-pub", "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "results": {}}
+          def note(k, v): R["results"][k] = v; print(k, "=>", v)
+          def http_probe(name, url, key):
+              if not key: return note(name, "ABSENT")
+              try:
+                  import requests
+                  r = requests.get(url, headers={"Authorization": "Bearer " + key}, timeout=12)
+                  note(name, f"HTTP {r.status_code}")
+              except Exception as e:
+                  note(name, "ERR " + type(e).__name__)
+          for nm, env in [("KIMI_NEW","KIMI0"),("KIMI_1","KIMI1"),("KIMI_2","KIMI2"),("KIMI_3","KIMI3")]:
+              http_probe(nm, "https://api.moonshot.cn/v1/models", os.environ.get(env,""))
+          for nm, env in [("DEEPSEEK_1","DS1"),("DEEPSEEK_2","DS2"),("DEEPSEEK_3","DS3")]:
+              http_probe(nm, "https://api.deepseek.com/models", os.environ.get(env,""))
+          try:
+              from pyqpanda import QCloud
+              for nm, env in [("ORIGINQC_main","OQ0"),("ORIGINQC_foxmail","OQ_F"),("ORIGINQC_spare","OQ_S"),("ORIGINQC_thai68","OQ_T")]:
+                  k = os.environ.get(env,"")
+                  if not k: note(nm, "ABSENT"); continue
+                  try:
+                      q = QCloud(); q.init_qvm(k, True)
+                      note(nm, "init_qvm OK")
+                      try: note(nm+"_machines", str(q.get_machine_status())[:200])
+                      except Exception as e2: note(nm+"_machines", "ERR " + type(e2).__name__)
+                  except Exception as e:
+                      note(nm, "init ERR " + type(e).__name__)
+          except Exception as e:
+              note("ORIGINQC_sdk", "IMPORT_FAIL " + type(e).__name__)
+          try:
+              from quafu import User
+              k = os.environ.get("QUAFU","")
+              if not k: note("QUAFU", "ABSENT")
+              else:
+                  u = User(); u.save_apitoken(k)
+                  try: note("QUAFU", "auth OK backends=" + str(len(u.get_available_backends())))
+                  except Exception as e2: note("QUAFU", "ERR " + type(e2).__name__)
+          except Exception as e:
+              note("QUAFU_sdk", "IMPORT_FAIL " + type(e).__name__)
+          json.dump(R, open("receipt.json","w"), ensure_ascii=False, indent=1)
+          print("RECEIPT_WRITTEN")
+          PYEOF
+          python3 probe.py
+      - name: commit receipt
+        run: |
+          mkdir -p results
+          cp receipt.json results/probe_pub_0915.json
+          git config user.email "qtlv-probe@ci.local"; git config user.name "qtlv-probe"
+          git add results/probe_pub_0915.json
+          git commit -m "[skip ci] qtlv probe_pub_0915 receipt" || echo NOCHANGE
+          git push
