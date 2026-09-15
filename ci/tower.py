@@ -1,11 +1,23 @@
-# QTLV-TOWER-03 v2.3.2 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
+# QTLV-TOWER-03 v2.3.3 — qtlv线正巷塔 (vci-qtlv) · 持AI_FULL_PAT跨仓臂 · OCTA-QTLV-01八面轮扫(板面差集/毂塔尖/receipts尖/水位双家差/NONCE专册/threads尖/QSET庭尖/W12t进程态) · 双仓机答
 # 法: 纯事件驱动; CLASSIFY首行; 席判位空挂; 幂等; 逐件容错; hmac回执链; 自级联(闲6歇)
 # 职: ①vci-inbox lanes/qtlv/inbox机答(就地落巷) ②镜仓outbox-relay/* relay至正所 ③镜仓notes/docs回流ai-quant-research/quantum/qtlv/ ④receipts
 import os, re, json, time, hmac, hashlib, subprocess, datetime, math, base64 as b64
 import urllib.request, urllib.parse
 NOW = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-PAT = os.environ.get("FINE_OWN_PAT_QTL") or os.environ.get("AI_FULL_PAT") or os.environ.get("CI_OPS_LINE_KEY") or os.environ.get("QI_PAT") or os.environ.get("GH_TOKEN", "")  # v2.3.2 QI_PAT(chepin-qi协作者臂·独立池)入链倒二位,ai池罄时自动换池
+import random as _rnd
 GT = os.environ.get("GH_TOKEN", "")
+# v2.3.3 配额感知(器课0915: 次级限流单钥403≠全链灭; per-USER计费FINDING——同户钥共烧一池,跨户QI臂独立池兜底): 巡首jitter + 逐钥探活,200者为主钥,全灭方KEY-DARK
+time.sleep(_rnd.uniform(0, 20))
+def _probe(tok):
+    try:
+        _rq = urllib.request.Request("https://api.github.com/user", headers={"Authorization": "Bearer " + tok, "User-Agent": "qtlv-tower03"})
+        urllib.request.urlopen(_rq, timeout=15); return True
+    except Exception: return False
+PAT, PAT_SRC = "", ""
+for _kn in ("FINE_OWN_PAT_QTL", "AI_FULL_PAT", "CI_OPS_LINE_KEY", "QI_PAT"):
+    _kv = os.environ.get(_kn, "")
+    if _kv and _probe(_kv): PAT, PAT_SRC = _kv, _kn; break
+if not PAT: PAT = os.environ.get("GH_TOKEN", "")
 def gh(method, repo, path, data=None, token=None):
     u = "https://api.github.com/repos/" + repo + "/contents/" + urllib.parse.quote(path)
     rq = urllib.request.Request(u, method=method,
@@ -30,12 +42,7 @@ def save(p, o):
     with open(p, "w") as f: json.dump(o, f, ensure_ascii=False, indent=1)
 
 # KEY-DARK警+降级面: 巡首验钥; SCAN-OWN-KEYS闸: 仓面泄钥扫描
-KEY_OK, KEY_DARK = True, None
-try:
-    _rq = urllib.request.Request("https://api.github.com/user", headers={"Authorization": "Bearer " + PAT, "User-Agent": "qtlv-tower03"})
-    urllib.request.urlopen(_rq, timeout=15)
-except Exception as e:
-    KEY_OK = False; KEY_DARK = str(e)[:60]
+KEY_OK, KEY_DARK = ((True, None) if PAT_SRC else (False, "all-PAT-chain probe fail; tried=" + ",".join(n for n in ("FINE_OWN_PAT_QTL","AI_FULL_PAT","CI_OPS_LINE_KEY","QI_PAT") if os.environ.get(n))))
 leaks = []
 try:
     files = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split()
@@ -48,7 +55,7 @@ if KEY_DARK:
     save(f"tower/KEY-DARK-{NOW.replace(':','')}.json", {"ts": NOW, "err": KEY_DARK, "mode": "DEGRADED: PAT动作全停, GT动作续行(降级面)"})
 if leaks:
     save(f"tower/SECURITY-KEYLEAK-{NOW.replace(':','')}.json", {"ts": NOW, "files": leaks, "law": "值永不入文——即报root/qfa并撤钥"})
-print("key_ok", KEY_OK, "leaks", leaks)
+print("key_ok", KEY_OK, "pat_src", PAT_SRC, "leaks", leaks)
 state = load("tower/state.json", {"done": [], "chain": "0"*16, "cycles": 0, "idle": 0, "runs": []})
 done = set(state["done"]); acts = []
 VI = "chepin-ai/vci-inbox"; MIR = "chepin-qi/qtlv-pub"; CANON = "chepin-ai/ai-quant-research"
