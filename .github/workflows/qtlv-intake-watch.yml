@@ -1,0 +1,30 @@
+# QTLV SI3-LOOP intake watcher — 纯事件驱动(Cron禁用守) / vci-qtlv 公仓面=零私域额度
+name: qtlv-intake-watch
+on:
+  push:
+    branches: [main]
+  repository_dispatch:
+    types: [x-fire, intake, si3-loop]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: si3 intake sweep (公仓匿名+私仓FINE读面)
+        env:
+          FINE_PAT: ${{ secrets.FINE_OWN_PAT_QTL }}
+          SI3_ROOT: .
+        run: python3 ci/si3_intake.py
+      - name: commit intake digest + watermark
+        run: |
+          git config user.name "qtlv-si3-loop"
+          git config user.email "si3-loop@qtlv.local"
+          git add receipts/
+          git diff --cached --quiet || git commit -m "[si3-loop] intake digest $(date -u +%Y%m%dT%H%M%SZ) [skip ci]"
+          git push
