@@ -56,20 +56,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "972cf284d66ecbc6",
- "cycles": 342,
+ "chain": "521c823fd8bda577",
+ "cycles": 343,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-14T18:36:18Z",
-   "acts": [
-    "ans:vci-inbox:SI-PROBE-QGL-121-qtlv.md",
-    "ans:/ci-inbox:VINF-B22-PING-1bb1c7bc.json",
-    "octa:Δ板面差集|毂塔尖|receipts尖|水位双家差|NONCE专册|threads尖|QSET庭尖|W12t进程态",
-    "wake:self-wake-qtlv-t53.md",
-    "entropy"
-   ]
-  },
   {
    "ts": "2026-09-14T18:46:54Z",
    "acts": [
@@ -430,6 +420,13 @@
     "ans:vci-inbox:KEY-INSTALL-RECEIPT-QTLV-lvlu-20260915T044038Z.md",
     "octa:Δ板面差集|毂塔尖|水位双家差|QSET庭尖|W12t进程态",
     "wake:self-wake-qtlv-t54.md"
+   ]
+  },
+  {
+   "ts": "2026-09-15T04:53:19Z",
+   "acts": [
+    "wake:self-wake-qtlv-t54.md",
+    "entropy"
    ]
   }
  ],
