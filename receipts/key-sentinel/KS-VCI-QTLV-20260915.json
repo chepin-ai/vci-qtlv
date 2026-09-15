@@ -1,0 +1,45 @@
+{
+ "id": "KS-VCI-QTLV-20260915",
+ "beat": "T56",
+ "scope": "vci-qtlv secrets sentinel (beat69 KEY-AUDIT-69)",
+ "secrets_meta": {
+  "AI_FULL_PAT": "2026-09-12T02:48:05Z",
+  "CI_OPS_LINE_KEY": "2026-09-12T02:48:04Z",
+  "DEPLOY_SSH_KEY": "2026-09-15T04:16:40Z",
+  "FINE_OWN_PAT_QTL": "2026-09-13T19:54:31Z",
+  "FINE_OWN_PAT_QTL_QI": "2026-09-14T12:00:01Z",
+  "LINE_PAT": "2026-09-12T18:39:28Z",
+  "QTLV_HMAC_SK": "2026-09-14T16:32:18Z",
+  "QTLV_RECOVERY_ROT": "2026-09-14T16:32:19Z",
+  "QTLV_SIGN_SK": "2026-09-14T16:32:16Z"
+ },
+ "user_tests": [
+  {
+   "key": "FINE_OWN_PAT_QTL",
+   "status": 200,
+   "login": "chepin-ai"
+  },
+  {
+   "key": "FINE_OWN_PAT_QTL_QI",
+   "status": 200,
+   "login": "chepin-qi"
+  },
+  {
+   "key": "QI_classic_side",
+   "status": 200,
+   "login": "chepin-qi"
+  }
+ ],
+ "not_value_held": [
+  "AI_FULL_PAT",
+  "CI_OPS_LINE_KEY",
+  "LINE_PAT",
+  "DEPLOY_SSH_KEY",
+  "QTLV_HMAC_SK",
+  "QTLV_RECOVERY_ROT",
+  "QTLV_SIGN_SK"
+ ],
+ "law": "名值分离·值零入文·未实测不编数",
+ "by": "qtlv SI1",
+ "ts": "20260915T150500Z"
+}
