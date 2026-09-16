@@ -66,16 +66,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "fbdc633e777da817",
- "cycles": 577,
- "idle": 0,
+ "chain": "d77f8938ff609cd5",
+ "cycles": 578,
+ "idle": 1,
  "runs": [
-  {
-   "ts": "2026-09-16T11:43:05Z",
-   "acts": [
-    "wake:self-wake-qtlv-t55r2.md"
-   ]
-  },
   {
    "ts": "2026-09-16T11:53:21Z",
    "acts": [
@@ -412,6 +406,10 @@
     "octa:Δ板面差集|毂塔尖|水位双家差|NONCE专册|threads尖",
     "entropy"
    ]
+  },
+  {
+   "ts": "2026-09-16T22:10:09Z",
+   "acts": []
   }
  ],
  "faces": {
