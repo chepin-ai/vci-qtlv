@@ -66,17 +66,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "2bf3c88f8416be88",
- "cycles": 617,
+ "chain": "11561907434e78ea",
+ "cycles": 618,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-16T18:41:38Z",
-   "acts": [
-    "octa:Δ毂塔尖",
-    "wake:self-wake-qtlv-t55r2.md"
-   ]
-  },
   {
    "ts": "2026-09-16T18:51:59Z",
    "acts": [
@@ -416,6 +409,12 @@
    "acts": [
     "octa:Δ板面差集|毂塔尖|水位双家差|NONCE专册|threads尖|QSET庭尖|W12t进程态"
    ]
+  },
+  {
+   "ts": "2026-09-17T05:05:52Z",
+   "acts": [
+    "octa:Δ毂塔尖"
+   ]
   }
  ],
  "faces": {
@@ -423,7 +422,7 @@
    53,
    -1
   ],
-  "毂塔尖": "44219616",
+  "毂塔尖": "8a867877",
   "receipts尖": [
    4,
    5
