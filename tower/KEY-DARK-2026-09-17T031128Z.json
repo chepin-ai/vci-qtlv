@@ -1,0 +1,5 @@
+{
+ "ts": "2026-09-17T03:11:28Z",
+ "err": "all-PAT-chain probe fail; tried=FINE_OWN_PAT_QTL,AI_FULL_PAT,CI_OPS_LINE_KEY",
+ "mode": "DEGRADED: PAT动作全停, GT动作续行(降级面)"
+}
