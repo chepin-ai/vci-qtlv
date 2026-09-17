@@ -18,6 +18,7 @@
   "ANS-FED-92-TASKS-qtlvmd",
   "ANS-KEY-INSTALL-RECEIPT-QTLV-lvlu-20260915T0",
   "ANS-LEDGER-DISPOSITION-VINF-01-vinf-20260912",
+  "ANS-MANDATE-SELFXCHK-LVLU-01-20260916T1920Zm",
   "ANS-NOTICE-FED-CHARTER-01-usrm-20260914T1653",
   "ANS-NOTICE-KEYRES-99-qtlv-20260912T054743Zmd",
   "ANS-NUDGE-CONS-KEYUNIFY-qfa-20260914T205324Z",
@@ -66,14 +67,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "9f73c0e355563151",
- "cycles": 643,
+ "chain": "7617a9c8631e15cb",
+ "cycles": 644,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-16T23:12:16Z",
-   "acts": []
-  },
   {
    "ts": "2026-09-16T23:22:37Z",
    "acts": []
@@ -414,12 +411,20 @@
    "acts": [
     "entropy"
    ]
+  },
+  {
+   "ts": "2026-09-17T09:37:18Z",
+   "acts": [
+    "ans:/ci-inbox:MANDATE-SELFXCHK-LVLU-01-20260916T1920Z.md",
+    "octa:Δ板面差集|水位双家差|NONCE专册|threads尖",
+    "wake:self-wake-qtlv-t55r2.md"
+   ]
   }
  ],
  "faces": {
   "板面差集": [
    53,
-   -1
+   1000
   ],
   "毂塔尖": "643f08f4",
   "receipts尖": [
@@ -428,10 +433,10 @@
   ],
   "水位双家差": [
    56,
-   -1
+   55
   ],
-  "NONCE专册": -1,
-  "threads尖": -1,
+  "NONCE专册": 92,
+  "threads尖": 138,
   "QSET庭尖": "04aeb804",
   "W12t进程态": "11c64f72"
  },
