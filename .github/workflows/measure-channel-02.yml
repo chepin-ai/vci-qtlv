@@ -1,0 +1,63 @@
+name: MEASURE-CHANNEL-02 (实采通道首件·拍45·ANU量子真随机实采+pyquafu仿真对照·机时≤120s·名级)
+'on':
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: pip-install
+        run: pip install -q pyquafu numpy
+      - name: measure
+        timeout-minutes: 4
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, datetime, subprocess, urllib.request, math
+          ts=datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+          rec={'channel':'MEASURE-CHANNEL-02','ts':ts,'layers':{}}
+          # ①实采层:ANU QRNG(量子真空涨落真随机,公域免钥,联邦qrand先例)
+          try:
+              rq=urllib.request.Request('https://qrng.anu.edu.au/API/jsonI.php?length=1024&type=uint8',headers={'User-Agent':'measure-channel'})
+              with urllib.request.urlopen(rq,timeout=60) as r: d=json.loads(r.read())
+              if d.get('success'):
+                  data=d['data']; n=len(data)
+                  mean=sum(data)/n; var=sum((x-mean)**2 for x in data)/n
+                  import collections
+                  cnt=collections.Counter(data); import math as m2
+                  ps=[c/n for c in cnt.values()]
+                  ent=-sum(p*m2.log2(p) for p in ps)
+                  rec['layers']['ANU_QRNG']={'n':n,'mean':round(mean,3),'var':round(var,2),'entropy_bits_per_byte':round(ent,4),
+                      'expect_mean':127.5,'expect_ent_max':8.0,'provenance':'qrng.anu.edu.au量子真空涨落(实采)','real':True}
+          except Exception as e: rec['layers']['ANU_QRNG']={'fail':str(e)[:80]}
+          # ②对照层:pyquafu仿真Bell/CHSH(标注非实采)
+          try:
+              from quafu import QuantumCircuit
+              from quafu.simulators.default_simulator import simulate
+              def bell2(tb):
+                  c=QuantumCircuit(2); c.h(0); c.cnot(0,1); c.ry(1,tb); return c
+              def E(c):
+                  r=simulate(c,shots=2000); cnt=r.counts; n2=sum(cnt.values())
+                  return (sum(v for k,v in cnt.items() if k in ('00','11'))-sum(v for k,v in cnt.items() if k in ('01','10')))/n2
+              st={'a0_b+':(0,math.pi/4),'a0_b-':(0,-math.pi/4),'a1_b+':(math.pi/2,math.pi/4),'a1_b-':(math.pi/2,-math.pi/4)}
+              Es={k:E(bell2(v[1])) for k,v in st.items()}
+              rec['layers']['pyquafu_sim']={'E':{k:round(v,4) for k,v in Es.items()},'S':round(Es['a0_b+']-Es['a0_b-']+Es['a1_b+']+Es['a1_b-'],4),'real':False,'note':'仿真对照,非实采'}
+          except Exception as e: rec['layers']['pyquafu_sim']={'fail':str(e)[:100]}
+          os.makedirs('si/measurements',exist_ok=True)
+          fn='si/measurements/M-%s.json'%ts
+          json.dump(rec,open(fn,'w'),ensure_ascii=False,indent=1)
+          subprocess.run(['git','config','user.name','measure-channel']); subprocess.run(['git','config','user.email','measure@ci'])
+          subprocess.run(['git','add','si/measurements'])
+          c=subprocess.run(['git','commit','-m','MEASURE-02 %s'%ts],capture_output=True,text=True)
+          push='skip'
+          if c.returncode==0:
+              for i in range(4):
+                  subprocess.run(['git','fetch','-q','origin','main'],capture_output=True)
+                  rb=subprocess.run(['git','rebase','origin/main'],capture_output=True,text=True)
+                  q=subprocess.run(['git','push','-q','origin','HEAD:main'],capture_output=True,text=True)
+                  if q.returncode==0: push='ok'; break
+                  if rb.returncode!=0: subprocess.run(['git','rebase','--abort'],capture_output=True)
+          q1=rec['layers'].get('ANU_QRNG',{})
+          print(json.dumps({'measure':'done','anu_real':q1.get('real'),'anu_ent':q1.get('entropy_bits_per_byte'),'sim_S':rec['layers'].get('pyquafu_sim',{}).get('S'),'push':push},ensure_ascii=False))
+          PYEOF
