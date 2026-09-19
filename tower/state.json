@@ -72,14 +72,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "15aaec5b2567b846",
- "cycles": 929,
- "idle": 1,
+ "chain": "fc8a03ecebd21d7f",
+ "cycles": 930,
+ "idle": 2,
  "runs": [
-  {
-   "ts": "2026-09-19T04:10:11Z",
-   "acts": []
-  },
   {
    "ts": "2026-09-19T04:20:38Z",
    "acts": [
@@ -421,6 +417,10 @@
   },
   {
    "ts": "2026-09-19T14:23:17Z",
+   "acts": []
+  },
+  {
+   "ts": "2026-09-19T14:33:41Z",
    "acts": []
   }
  ],
