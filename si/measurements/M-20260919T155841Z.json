@@ -1,0 +1,19 @@
+{
+ "channel": "MEASURE-CHANNEL-02",
+ "ts": "20260919T155841Z",
+ "layers": {
+  "ANU_QRNG": {
+   "n": 1024,
+   "mean": 123.196,
+   "var": 5557.16,
+   "entropy_bits_per_byte": 7.7992,
+   "expect_mean": 127.5,
+   "expect_ent_max": 8.0,
+   "provenance": "qrng.anu.edu.au量子真空涨落(实采)",
+   "real": true
+  },
+  "pyquafu_sim": {
+   "fail": "cannot import name 'simulate' from 'quafu.simulators.default_simulator' (/home/runner/.local/lib/pyt"
+  }
+ }
+}
