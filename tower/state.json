@@ -9,6 +9,7 @@
   "ANS-DEMAND-KEY69-QTLV-20260914T121843Zmd",
   "ANS-DEMAND-SI70-QTLV-20260914T134936Zmd",
   "ANS-DEMAND-WAVE-68-QTLV-20260913T084219Zmd",
+  "ANS-DIRECT-W213-USRM2QTLV-01-20260919T195509",
   "ANS-DRILL-0919-PATCH-disc-close-respondermd",
   "ANS-DRILL-0919-PATCH-key-probe-01md",
   "ANS-DRILL-0919-PATCH-key-sentinel-linemd",
@@ -72,17 +73,10 @@
   "relay:ECHO-91-qtlv-90880bd5d55881a2.md",
   "relay:ROTA-2026-09-21-qtlv-duty-draft.md"
  ],
- "chain": "49b840c280ed7294",
- "cycles": 961,
+ "chain": "7295116e26f09bec",
+ "cycles": 962,
  "idle": 0,
  "runs": [
-  {
-   "ts": "2026-09-19T09:42:48Z",
-   "acts": [
-    "octa:Δ板面差集|水位双家差|NONCE专册|threads尖",
-    "wake:self-wake-qtlv-t55r2.md"
-   ]
-  },
   {
    "ts": "2026-09-19T09:53:13Z",
    "acts": [
@@ -439,12 +433,20 @@
     "octa:ΔW12t进程态",
     "entropy"
    ]
+  },
+  {
+   "ts": "2026-09-19T20:40:36Z",
+   "acts": [
+    "ans:/ci-inbox:DIRECT-W213-USRM2QTLV-01-20260919T195509Z.md",
+    "octa:Δ板面差集|水位双家差|NONCE专册|threads尖|W12t进程态",
+    "wake:self-wake-qtlv-t55r2.md"
+   ]
   }
  ],
  "faces": {
   "板面差集": [
    59,
-   -1
+   1000
   ],
   "毂塔尖": "8d3db47b",
   "receipts尖": [
@@ -453,12 +455,12 @@
   ],
   "水位双家差": [
    56,
-   -1
+   67
   ],
-  "NONCE专册": -1,
-  "threads尖": -1,
+  "NONCE专册": 92,
+  "threads尖": 155,
   "QSET庭尖": "b42244cd",
-  "W12t进程态": "1d4040d4"
+  "W12t进程态": "81953b9f"
  },
  "nudge_log": {
   "usrm-CONSULT未诺": 270,
