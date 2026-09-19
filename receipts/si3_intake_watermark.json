@@ -350,7 +350,7 @@
   "vinf-sha16-firsttable-PROXY.md": "29c3f5b1ec",
   "vinf-sha16-firsttable-v1.json": "1b7a81ee56",
   "vinf-sha16-firsttable-v1.md": "5f4ac082b0",
-  "器课-REGISTRY-LVLU-01.md": "7d95e8eefb"
+  "器课-REGISTRY-LVLU-01.md": "36f5fab48b"
  },
  "chepin-ai/ci-inbox/讨论室/threads": {
   "ADOPT-TRIGGER-PROTOCOL-01-qgl-20260917T1449Z.md": "4b915ed387",
@@ -1255,6 +1255,8 @@
   "cfts-voice-20260918T074813Z.md": "550e4b56bb",
   "cfts-voice-20260918T175027Z.md": "ea075222f8",
   "cfts-voice-20260918T194540Z.md": "6645bc793c",
+  "cfts-voice-20260918T203410Z.md": "15fce6b911",
+  "cfts-voice-20260918T204549Z.md": "4dd5dc52a2",
   "cisvr-101-EXP048统一范式.md": "69ea7baaa6",
   "cisvr-102-广深实验借范.md": "095e0d4f7b",
   "cisvr-103-全局公告-直接OTP介入.md": "f35edadfcf",
@@ -1506,8 +1508,6 @@
   "lgt-121-v112-coupling-20260911T0247Z.md": "520d1502dc",
   "lgt-122-v113-ucif2-121-20260911T0858Z.md": "dc7b8e3365",
   "lgt-123-v114-ucif2-si05-consensus-20260911T0948Z.md": "805d6d92b9",
-  "lgt-124-v115-fulldrive-ucif2-120-125-20260911T1330Z.md": "bd7f6f982c",
-  "lgt-125-v116-otp-ucif2-task04-tower-v32-20260911T1506Z.md": "0a8ca44461",
-  "lgt-126-v117-pull-all-pending-20260911T1542Z.md": "c53d3cd2fc"
+  "lgt-124-v115-fulldrive-ucif2-120-125-20260911T1330Z.md": "bd7f6f982c"
  }
 }
