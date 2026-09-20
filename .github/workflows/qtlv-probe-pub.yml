@@ -19,19 +19,20 @@ jobs:
       - name: probe
         env:
           KIMI0: ${{ secrets.KIMI_API_KEY }}
-          KIMI1: ${{ secrets.API_KIMI_KEY_1 }}
-          KIMI2: ${{ secrets.API_KIMI_KEY_2 }}
-          KIMI3: ${{ secrets.API_KIMI_KEY_3 }}
-          DS1: ${{ secrets.API_DEEPSEEK_KEY_1 }}
-          DS2: ${{ secrets.API_DEEPSEEK_KEY_2 }}
-          DS3: ${{ secrets.API_DEEPSEEK_KEY_3 }}
-          OQ0: ${{ secrets.ORIGINQC_API_KEY }}
-          OQ_F: ${{ secrets.ORIGINQC_API_KEY_FOXMAIL }}
-          OQ_S: ${{ secrets.ORIGINQC_API_KEY_SPARE }}
-          OQ_T: ${{ secrets.ORIGINQC_API_KEY_THAI68 }}
-          QUAFU: ${{ secrets.QUAFU_API_KEY }}
-          QR64: ${{ secrets.QUANTUMRINGS_API_KEY_64 }}
-          QR128: ${{ secrets.QUANTUMRINGS_API_KEY_128 }}
+          # 0920 名映射: vci-qtlv 实仓名(资源波 RESOURCE-WAVE-01 注入)
+          KIMI1: ${{ secrets.KIMI_API_KEY }}
+          KIMI2: ${{ secrets.KIMI_API_KEY }}
+          KIMI3: ${{ secrets.KIMI_API_KEY }}
+          DS1: ${{ secrets.DEEPSEEK_API_KEY }}
+          DS2: ${{ secrets.DEEPSEEK_API_KEY }}
+          DS3: ${{ secrets.DEEPSEEK_API_KEY }}
+          OQ0: ${{ secrets.ORIGINQC_KEY_1 }}
+          OQ_F: ${{ secrets.ORIGINQC_KEY_1 }}
+          OQ_S: ${{ secrets.ORIGINQC_KEY_1 }}
+          OQ_T: ${{ secrets.ORIGINQC_KEY_1 }}
+          QUAFU: ${{ secrets.QUAFU_API_TOKEN }}
+          QR64: ${{ secrets.QRINGS_KEY_64 }}
+          QR128: ${{ secrets.QRINGS_KEY_128 }}
         run: |
           cat > probe.py <<'PYEOF'
           import os, json, time
@@ -63,6 +64,9 @@ jobs:
                       note(nm, "init ERR " + type(e).__name__)
           except Exception as e:
               note("ORIGINQC_sdk", "IMPORT_FAIL " + type(e).__name__)
+          # QRings: 免额度状态端点未证实, 名级判不呼(未实测不编数)
+          for nm, env in [("QRINGS_64","QR64"),("QRINGS_128","QR128")]:
+              note(nm, "PRESENT-name-level(no free endpoint probed)" if os.environ.get(env,"") else "ABSENT")
           try:
               from quafu import User
               k = os.environ.get("QUAFU","")
@@ -83,5 +87,5 @@ jobs:
           cp receipt.json results/probe_pub_0915.json
           git config user.email "qtlv-probe@ci.local"; git config user.name "qtlv-probe"
           git add results/probe_pub_0915.json
-          git commit -m "[skip ci] qtlv probe_pub_0915 receipt" || echo NOCHANGE
-          git push
+          git commit -m "[skip ci] qtlv probe_pub receipt $(date -u +%Y%m%dT%H%M%SZ)" || echo NOCHANGE
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep 3; done; exit 1
