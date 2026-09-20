@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: deps
-        run: pip install --quiet requests 2>&1 | tail -1; pip install --quiet pyqpanda 2>&1 | tail -1 || echo PYQPANDA_INSTALL_FAIL; pip install quafu 2>&1 | tail -6 || echo QUAFU_INSTALL_FAIL; python3 -c "import quafu; print('QUAFU_VER', getattr(quafu,'__version__','?'))" 2>&1 | tail -1 || echo QUAFU_IMPORT_STILL_FAIL
+        run: pip install --quiet requests 2>&1 | tail -1; pip install --quiet pyqpanda 2>&1 | tail -1 || echo PYQPANDA_INSTALL_FAIL; pip install --quiet pyquafu 2>&1 | tail -2 || echo PYQUAFU_INSTALL_FAIL; python3 -c "import quafu; print('QUAFU_VER', getattr(quafu,'__version__','?'))" 2>&1 | tail -1 || echo QUAFU_IMPORT_STILL_FAIL
       - name: probe
         env:
           KIMI0: ${{ secrets.KIMI_API_KEY }}
