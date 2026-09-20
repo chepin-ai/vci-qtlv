@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: deps
-        run: pip install --quiet requests 2>&1 | tail -1; pip install --quiet pyqpanda 2>&1 | tail -1 || echo PYQPANDA_INSTALL_FAIL; pip install --quiet quafu 2>&1 | tail -3 || echo QUAFU_INSTALL_FAIL; python3 -c "import quafu; print('QUAFU_VER', getattr(quafu,'__version__','?'))" 2>&1 | tail -1 || echo QUAFU_IMPORT_STILL_FAIL
+        run: pip install --quiet requests 2>&1 | tail -1; pip install --quiet pyqpanda 2>&1 | tail -1 || echo PYQPANDA_INSTALL_FAIL; pip install quafu 2>&1 | tail -6 || echo QUAFU_INSTALL_FAIL; python3 -c "import quafu; print('QUAFU_VER', getattr(quafu,'__version__','?'))" 2>&1 | tail -1 || echo QUAFU_IMPORT_STILL_FAIL
       - name: probe
         env:
           KIMI0: ${{ secrets.KIMI_API_KEY }}
@@ -61,7 +61,7 @@ jobs:
                       meths = [m for m in dir(q) if "machine" in m.lower() or "status" in m.lower() or "chip" in m.lower()]
                       note(nm+"_api_surface", ",".join(meths)[:200])
                       got = False
-                      for m in ("get_machine_status","get_qmachine_status","machine_status","get_chip_status"):
+                      for m in ("get_status","getStatus","TaskStatus","show_chip_topology"):
                           if hasattr(q, m):
                               try: note(nm+"_machines", str(getattr(q, m)())[:200]); got = True; break
                               except Exception as e2: note(nm+"_machines", m+" ERR " + type(e2).__name__); got = True; break
