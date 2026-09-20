@@ -1,0 +1,46 @@
+name: CENSUS-QC-01 (拍47·量子钥分发面全仓名级普查·值不出)
+'on':
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  AI_FULL_PAT: ${{ secrets.AI_FULL_PAT }}
+  FINE_OWN_PAT_QTL_QI: ${{ secrets.FINE_OWN_PAT_QTL_QI }}
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - name: census
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, re, urllib.request
+          QPAT=re.compile(r'RING|QUAFU|ORIGIN|QR_|QR64|QR128|QUANTUM|IBM_?Q|QISKIT|AQT|IONQ|RIGETTI|XANADU',re.I)
+          def get(tok,url):
+              H={'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json'}
+              try:
+                  rq=urllib.request.Request(url,headers=H)
+                  with urllib.request.urlopen(rq,timeout=20) as r: return r.status, json.loads(r.read() or b'{}')
+              except urllib.error.HTTPError as e: return e.code, {}
+              except Exception as e: return 0, {}
+          ai=os.environ.get('AI_FULL_PAT',''); qi=os.environ.get('FINE_OWN_PAT_QTL_QI','')
+          out={'ai':{},'qi':{}}
+          st,d=get(ai,'https://api.github.com/user/repos?per_page=100&affiliation=owner')
+          repos=[r['full_name'] for r in d] if st==200 and isinstance(d,list) else []
+          out['ai_repo_n']=len(repos)
+          for rp in repos:
+              st2,dd=get(ai,'https://api.github.com/repos/%s/actions/secrets?per_page=100'%rp)
+              if st2==200:
+                  names=[s['name'] for s in dd.get('secrets',[])]
+                  hits=[n for n in names if QPAT.search(n)]
+                  if hits: out['ai'][rp]=hits
+              else: out['ai'][rp]='HTTP %s'%st2
+          qi_repos=['qtlv-pub','qlv-pub','qfa-pub','qfa-quantum-lab','qlv-ci-line','lgt-line','quantum-lgt-experiments','qlv-lib','qtlv-lib','qi-lib','qi-lab','ci-qtlv']
+          for rn in qi_repos:
+              st2,dd=get(qi,'https://api.github.com/repos/chepin-qi/%s/actions/secrets?per_page=100'%rn)
+              if st2==200:
+                  names=[s['name'] for s in dd.get('secrets',[])]
+                  hits=[n for n in names if QPAT.search(n)]
+                  out['qi'][rn]={'n':len(names),'hits':hits} if hits else {'n':len(names)}
+              else: out['qi'][rn]='HTTP %s'%st2
+          print('CENSUS-QC-01 '+json.dumps(out,ensure_ascii=False))
+          PYEOF
