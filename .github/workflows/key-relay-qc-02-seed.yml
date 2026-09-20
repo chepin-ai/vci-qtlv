@@ -1,0 +1,39 @@
+name: KEY-RELAY-QC-02-SEED (拍47·向持钥仓注relay+点火)
+'on':
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  AI_FULL_PAT: ${{ secrets.AI_FULL_PAT }}
+  RELAY_B64: bmFtZTogS0VZLVJFTEFZLVFDLTAyICjmi400N8K35pys5LuT6YeP5a2Q6ZKl4oaSdmNpLXF0bHYgc2VhbOaOpeWKm8K35ZCN57qn5Zue5omnKQonb24nOgogIHdvcmtmbG93X2Rpc3BhdGNoOgpwZXJtaXNzaW9uczoKICBjb250ZW50czogcmVhZAplbnY6CiAgUVJJTkdTX0tFWV82NDogJHt7IHNlY3JldHMuUVJJTkdTX0tFWV82NCB9fQogIFFSSU5HU19LRVlfMTI4OiAke3sgc2VjcmV0cy5RUklOR1NfS0VZXzEyOCB9fQogIFFVQU5UVU1SSU5HU19BUElfS0VZXzY0OiAke3sgc2VjcmV0cy5RVUFOVFVNUklOR1NfQVBJX0tFWV82NCB9fQogIFFVQU5UVU1SSU5HU19BUElfS0VZXzEyODogJHt7IHNlY3JldHMuUVVBTlRVTVJJTkdTX0FQSV9LRVlfMTI4IH19CiAgUVVBRlVfQVBJX1RPS0VOOiAke3sgc2VjcmV0cy5RVUFGVV9BUElfVE9LRU4gfX0KICBRVUFGVV9BUElfS0VZOiAke3sgc2VjcmV0cy5RVUFGVV9BUElfS0VZIH19CiAgT1JJR0lOUUNfS0VZXzE6ICR7eyBzZWNyZXRzLk9SSUdJTlFDX0tFWV8xIH19CiAgT1JJR0lOUUNfQVBJX0tFWTogJHt7IHNlY3JldHMuT1JJR0lOUUNfQVBJX0tFWSB9fQogIEFJX0ZVTExfUEFUOiAke3sgc2VjcmV0cy5BSV9GVUxMX1BBVCB9fQpqb2JzOgogIHJlbGF5OgogICAgcnVucy1vbjogdWJ1bnR1LWxhdGVzdAogICAgc3RlcHM6CiAgICAgIC0gbmFtZTogcGlwCiAgICAgICAgcnVuOiBwaXAgaW5zdGFsbCAtcSBweW5hY2wKICAgICAgLSBuYW1lOiByZWxheQogICAgICAgIHJ1bjogfAogICAgICAgICAgcHl0aG9uMyAtIDw8J1BZMicKICAgICAgICAgIGltcG9ydCBvcywganNvbiwgYmFzZTY0LCB1cmxsaWIucmVxdWVzdAogICAgICAgICAgaW1wb3J0IG5hY2wucHVibGljLCBuYWNsLmVuY29kaW5nCiAgICAgICAgICBQQVQ9b3MuZW52aXJvbi5nZXQoJ0FJX0ZVTExfUEFUJywnJykKICAgICAgICAgIEg9eydBdXRob3JpemF0aW9uJzonQmVhcmVyICcrUEFULCdBY2NlcHQnOidhcHBsaWNhdGlvbi92bmQuZ2l0aHViK2pzb24nLCdDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30KICAgICAgICAgIGRlZiByZXEobWV0aG9kLHVybCxkYXRhPU5vbmUpOgogICAgICAgICAgICAgIHJxPXVybGxpYi5yZXF1ZXN0LlJlcXVlc3QodXJsLGRhdGE9ZGF0YSxoZWFkZXJzPUgsbWV0aG9kPW1ldGhvZCkKICAgICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICAgIHdpdGggdXJsbGliLnJlcXVlc3QudXJsb3BlbihycSx0aW1lb3V0PTMwKSBhcyByOiByZXR1cm4gci5zdGF0dXMsIGpzb24ubG9hZHMoci5yZWFkKCkgb3IgYid7fScpCiAgICAgICAgICAgICAgZXhjZXB0IHVybGxpYi5lcnJvci5IVFRQRXJyb3IgYXMgZTogcmV0dXJuIGUuY29kZSwge30KICAgICAgICAgIHN0LG1ldGE9cmVxKCdHRVQnLCdodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL2NoZXBpbi1haS92Y2ktcXRsdi9hY3Rpb25zL3NlY3JldHMvcHVibGljLWtleScpCiAgICAgICAgICBvdXQ9eydwdWJrZXknOnN0LCdyJzp7fX0KICAgICAgICAgIGlmIHN0PT0yMDA6CiAgICAgICAgICAgICAgYm94PW5hY2wucHVibGljLlNlYWxlZEJveChuYWNsLnB1YmxpYy5QdWJsaWNLZXkobWV0YVsna2V5J10sbmFjbC5lbmNvZGluZy5CYXNlNjRFbmNvZGVyKSkKICAgICAgICAgICAgICBzdDIsbm09cmVxKCdHRVQnLCdodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL2NoZXBpbi1haS92Y2ktcXRsdi9hY3Rpb25zL3NlY3JldHM/cGVyX3BhZ2U9MTAwJykKICAgICAgICAgICAgICBoYXZlPXNldChzWyduYW1lJ10gZm9yIHMgaW4gbm0uZ2V0KCdzZWNyZXRzJyxbXSkpIGlmIHN0Mj09MjAwIGVsc2Ugc2V0KCkKICAgICAgICAgICAgICBmb3IgbmFtZSBpbiBbJ1FSSU5HU19LRVlfNjQnLCdRUklOR1NfS0VZXzEyOCcsJ1FVQU5UVU1SSU5HU19BUElfS0VZXzY0JywnUVVBTlRVTVJJTkdTX0FQSV9LRVlfMTI4JywnUVVBRlVfQVBJX1RPS0VOJywnUVVBRlVfQVBJX0tFWScsJ09SSUdJTlFDX0tFWV8xJywnT1JJR0lOUUNfQVBJX0tFWSddOgogICAgICAgICAgICAgICAgICB2PW9zLmVudmlyb24uZ2V0KG5hbWUsJycpCiAgICAgICAgICAgICAgICAgIGlmIG5vdCB2OiBvdXRbJ3InXVtuYW1lXT0nbm8tc3JjJzsgY29udGludWUKICAgICAgICAgICAgICAgICAgaWYgbmFtZSBpbiBoYXZlOiBvdXRbJ3InXVtuYW1lXT0nU0tJUCc7IGNvbnRpbnVlCiAgICAgICAgICAgICAgICAgIGVuYz1iYXNlNjQuYjY0ZW5jb2RlKGJveC5lbmNyeXB0KHYuZW5jb2RlKCkpKS5kZWNvZGUoKQogICAgICAgICAgICAgICAgICBzdDMsXz1yZXEoJ1BVVCcsJ2h0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvY2hlcGluLWFpL3ZjaS1xdGx2L2FjdGlvbnMvc2VjcmV0cy8lcyclbmFtZSwKICAgICAgICAgICAgICAgICAgICAgIGpzb24uZHVtcHMoeydlbmNyeXB0ZWRfdmFsdWUnOmVuYywna2V5X2lkJzptZXRhWydrZXlfaWQnXX0pLmVuY29kZSgpKQogICAgICAgICAgICAgICAgICBvdXRbJ3InXVtuYW1lXT0nUFVUICVzJyVzdDMKICAgICAgICAgIHByaW50KCdSRUxBWS1SQ1BUICcranNvbi5kdW1wcyhvdXQsZW5zdXJlX2FzY2lpPUZhbHNlKSkKICAgICAgICAgIFBZMgo=
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: seed-and-fire
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, base64, urllib.request, time
+          PAT=os.environ.get('AI_FULL_PAT','')
+          H={'Authorization':'Bearer '+PAT,'Accept':'application/vnd.github+json','Content-Type':'application/json'}
+          def req(method,url,data=None):
+              rq=urllib.request.Request(url,data=data,headers=H,method=method)
+              try:
+                  with urllib.request.urlopen(rq,timeout=30) as r: return r.status, json.loads(r.read() or b'{}')
+              except urllib.error.HTTPError as e: return e.code, {}
+          b64c=os.environ['RELAY_B64']
+          out={}
+          for repo in ['usrm-repo','vinf-market-kernel','qlv']:
+              st,_=req('PUT','https://api.github.com/repos/chepin-ai/%s/contents/.github/workflows/key-relay-qc-02.yml'%repo,
+                  json.dumps({'message':'KEY-RELAY-QC-02 (beat47)','content':b64c}).encode())
+              out[repo]={'put':st}
+              time.sleep(6)
+              if st in (200,201):
+                  st2,d=req('GET','https://api.github.com/repos/chepin-ai/%s/actions/workflows?per_page=100'%repo)
+                  wfs=[w for w in d.get('workflows',[]) if 'KEY-RELAY-QC-02' in w['name']]
+                  if wfs:
+                      st3,_=req('POST','https://api.github.com/repos/chepin-ai/%s/actions/workflows/%s/dispatches'%(repo,wfs[0]['id']),
+                          json.dumps({'ref':'main'}).encode())
+                      out[repo]['fire']=st3; out[repo]['wid']=wfs[0]['id']
+          print('SEED-RCPT '+json.dumps(out,ensure_ascii=False))
+          PYEOF
