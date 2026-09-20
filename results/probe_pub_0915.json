@@ -1,6 +1,6 @@
 {
  "probe": "qtlv-probe-pub",
- "ts": "2026-09-20T09:16:40Z",
+ "ts": "2026-09-20T09:32:23Z",
  "results": {
   "KIMI_NEW": "HTTP 200",
   "KIMI_1": "HTTP 200",
@@ -23,6 +23,6 @@
   "ORIGINQC_thai68_machines": "get_status ERR TypeError",
   "QRINGS_64": "PRESENT-name-level(no free endpoint probed)",
   "QRINGS_128": "PRESENT-name-level(no free endpoint probed)",
-  "QUAFU_sdk": "IMPORT_FAIL ModuleNotFoundError"
+  "QUAFU_sdk": "IMPORT_FAIL UserError"
  }
 }
