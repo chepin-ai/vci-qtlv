@@ -4,7 +4,7 @@
 # 产物: receipts/intake/INTAKE-<ts>.md + receipts/si3_intake_watermark.json 差分水位
 import json, os, re, sys, time, urllib.request, urllib.parse
 
-FINE = os.environ.get("FINE_PAT", "")  # secrets.FINE_OWN_PAT_QTL (读面, 不耗 Actions 额度)
+FINE = os.environ.get("FINE_PAT") or os.environ.get("QI_READ") or ""  # 钥亡不停车: FINE(亡0920)->QTLV_CI_READ_QI 降级链
 UA = {"User-Agent": "qtlv-si3-intake"}
 TS = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 
