@@ -73,16 +73,33 @@ jobs:
           # QRings: 免额度状态端点未证实, 名级判不呼(未实测不编数)
           for nm, env in [("QRINGS_64","QR64"),("QRINGS_128","QR128")]:
               note(nm, "PRESENT-name-level(no free endpoint probed)" if os.environ.get(env,"") else "ABSENT")
+          # QUAFU iter5: UserError at import time -> pyquafu __init__ instantiates default User w/o token.
+          # Diagnose surface, then construct User(api_token=k) directly.
           try:
-              from quafu import User
-              k = os.environ.get("QUAFU","")
-              if not k: note("QUAFU", "ABSENT")
-              else:
-                  u = User(); u.save_apitoken(k)
-                  try: note("QUAFU", "auth OK backends=" + str(len(u.get_available_backends())))
-                  except Exception as e2: note("QUAFU", "ERR " + type(e2).__name__)
+              import quafu, traceback
+              note("QUAFU_sdk_ver", str(getattr(quafu, "__version__", "?")))
           except Exception as e:
-              note("QUAFU_sdk", "IMPORT_FAIL " + type(e).__name__)
+              note("QUAFU_sdk", "IMPORT_FAIL " + type(e).__name__ + " " + str(e)[:120])
+              note("QUAFU_sdk_tb", traceback.format_exc().splitlines()[-3][:200] if traceback.format_exc() else "?")
+          k = os.environ.get("QUAFU","")
+          if not k: note("QUAFU", "ABSENT")
+          else:
+              ok = False
+              # variant A: User(api_token=k)
+              try:
+                  from quafu import User
+                  u = User(k)
+                  note("QUAFU", "authA OK backends=" + str(len(u.get_available_backends()))); ok = True
+              except Exception as e:
+                  note("QUAFU_A", "ERR " + type(e).__name__ + " " + str(e)[:100])
+              if not ok:
+                  try:
+                      import importlib, quafu.users.userapi as ua
+                      u2 = ua.User(k)
+                      note("QUAFU", "authB OK backends=" + str(len(u2.get_available_backends()))); ok = True
+                  except Exception as e:
+                      note("QUAFU_B", "ERR " + type(e).__name__ + " " + str(e)[:100])
+              if not ok: note("QUAFU", "ALL_VARIANTS_FAIL")
           json.dump(R, open("receipt.json","w"), ensure_ascii=False, indent=1)
           print("RECEIPT_WRITTEN")
           PYEOF
