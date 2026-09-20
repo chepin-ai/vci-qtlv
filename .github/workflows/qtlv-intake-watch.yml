@@ -22,6 +22,7 @@ jobs:
       - name: si3 intake sweep (公仓匿名+私仓FINE读面)
         env:
           FINE_PAT: ${{ secrets.FINE_OWN_PAT_QTL }}
+          QI_READ: ${{ secrets.QTLV_CI_READ_QI }}
           SI3_ROOT: .
         run: python3 ci/si3_intake.py
       - name: commit intake digest + watermark (rebase-retry, lvlu-409课)
