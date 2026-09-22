@@ -1,0 +1,78 @@
+name: QC-VALUE-PROBE-03
+on:
+  workflow_dispatch: {}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      QBRAID_API_KEY: ${{ secrets.QBRAID_API_KEY }}
+      QBRAID_ACCESS_TOKEN: ${{ secrets.QBRAID_ACCESS_TOKEN }}
+      IBM_QUANTUM_KEY: ${{ secrets.IBM_QUANTUM_KEY }}
+      IBM_QUANTUM_CRN: ${{ secrets.IBM_QUANTUM_CRN }}
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_64: ${{ secrets.QRINGS_KEY_64 }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: presence
+        run: |
+          python3 - <<'EOF'
+          import os, json
+          names=['QBRAID_API_KEY','QBRAID_ACCESS_TOKEN','IBM_QUANTUM_KEY','IBM_QUANTUM_CRN','QUAFU_API_TOKEN','QRINGS_KEY_64','QRINGS_KEY_128','ORIGINQC_KEY_1']
+          print(json.dumps({n:('PRESENT' if os.environ.get(n) else 'MISSING') for n in names}))
+          EOF
+      - name: qbraid-apikey
+        run: |
+          python3 - <<'EOF'
+          import os, requests
+          k=os.environ.get('QBRAID_API_KEY','')
+          if not k: print('QBRAID_API_KEY MISSING')
+          else:
+            try:
+              r=requests.get('https://api-v2.qbraid.com/api/v1/users/verify',headers={'X-API-Key':k,'X-Domain':'qbraid'},timeout=25)
+              print('QBRAID_API_KEY verify', r.status_code, ('VALID' if r.status_code==200 else 'INVALID'))
+            except Exception as e: print('QBRAID_API_KEY NETERR', str(e)[:80])
+          t=os.environ.get('QBRAID_ACCESS_TOKEN','')
+          if t:
+            try:
+              r=requests.get('https://api-v2.qbraid.com/api/v1/users/verify',headers={'Authorization':'Bearer '+t},timeout=25)
+              print('QBRAID_ACCESS_TOKEN verify', r.status_code, '(TTL observation)')
+            except Exception as e: print('QBRAID_ACCESS_TOKEN NETERR', str(e)[:80])
+          EOF
+      - name: ibm
+        run: |
+          python3 - <<'EOF'
+          import os, requests
+          k=os.environ.get('IBM_QUANTUM_KEY',''); crn=os.environ.get('IBM_QUANTUM_CRN','')
+          if not k or not crn: print('IBM secrets MISSING')
+          else:
+            try:
+              t=requests.post('https://iam.cloud.ibm.com/identity/token',data={'grant_type':'urn:ibm:params:oauth:grant-type:apikey','apikey':k},timeout=30)
+              print('IBM IAM', t.status_code)
+              if t.status_code==200:
+                tok=t.json()['access_token']
+                ok=False
+              for host in ['https://api.quantum.ibm.com','https://api.quantum-computing.ibm.com']:
+                try:
+                  r=requests.get(host+'/runtime/backends',headers={'Authorization':'Bearer '+tok,'Service-CRN':crn},timeout=40)
+                  print('IBM backends', host, r.status_code, 'count~', r.text.count(chr(34)+'name'+chr(34))); ok=True; break
+                except Exception as e: print('IBM NETERR', host, str(e)[:80])
+              if not ok: print('IBM backends UNREACHABLE both hosts')
+                print('IBM backends', r.status_code, 'count~', r.text.count('"name"'))
+            except Exception as e: print('IBM NETERR', str(e)[:100])
+          EOF
+      - name: quafu
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu 2>&1 | tail -1
+          python3 - <<'EOF'
+          import os
+          tok=os.environ.get('QUAFU_API_TOKEN','')
+          if not tok: print('QUAFU MISSING')
+          else:
+            try:
+              from quafu import User
+              u=User(); u.save_apitoken(tok)
+              b=u.get_backends_info()
+              print('QUAFU backends OK, count', len(b) if b else 0)
+            except Exception as e: print('QUAFU ERR', str(e)[:120])
+          EOF
