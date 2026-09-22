@@ -1,0 +1,52 @@
+name: QC-VALUE-PROBE-01
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      IBM_QUANTUM_KEY: ${{ secrets.IBM_QUANTUM_KEY }}
+      IBM_QUANTUM_CRN: ${{ secrets.IBM_QUANTUM_CRN }}
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_64: ${{ secrets.QRINGS_KEY_64 }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+      QBRAID_ACCESS_TOKEN: ${{ secrets.QBRAID_ACCESS_TOKEN }}
+    steps:
+      - name: value-probe
+        run: |
+          python - <<'EOF'
+          import os, json, requests
+          rep={}
+          for n in ['IBM_QUANTUM_KEY','IBM_QUANTUM_CRN','QUAFU_API_TOKEN','QRINGS_KEY_64','QRINGS_KEY_128','ORIGINQC_KEY_1','QBRAID_ACCESS_TOKEN']:
+              rep[n]='PRESENT' if os.environ.get(n) else 'MISSING'
+          print('PRESENCE', json.dumps(rep))
+          try:
+              r=requests.post('https://iam.cloud.ibm.com/identity/token',
+                  data={'grant_type':'urn:ibm:params:oauth:grant-type:apikey','apikey':os.environ.get('IBM_QUANTUM_KEY','')},timeout=25)
+              tok=r.json().get('access_token')
+              if tok:
+                  b=requests.get('https://api.quantum.ibm.com/runtime/backends',headers={'Authorization':'Bearer '+tok,'Service-CRN':os.environ.get('IBM_QUANTUM_CRN','')},timeout=25)
+                  try: n=len(b.json().get('backends',[]))
+                  except Exception: n=-1
+                  print('IBM_VALUE', b.status_code, 'backends=', n)
+              else:
+                  print('IBM_VALUE IAM_FAIL', r.status_code)
+          except Exception as e:
+              print('IBM_VALUE ERR', str(e)[:90])
+          try:
+              v=requests.get('https://api-v2.qbraid.com/api/v1/users/verify',headers={'Authorization':'Bearer '+os.environ.get('QBRAID_ACCESS_TOKEN','')},timeout=20)
+              print('QBRAID_VALUE', v.status_code)
+          except Exception as e:
+              print('QBRAID_VALUE ERR', str(e)[:90])
+          try:
+              import subprocess, sys
+              subprocess.run([sys.executable,'-m','pip','install','-q','quafu'],check=True)
+              from quafu import User
+              u=User(); u.save_apitoken(os.environ.get('QUAFU_API_TOKEN',''))
+              bk=u.get_backends_info()
+              print('QUAFU_VALUE OK backends=', len(bk))
+          except Exception as e:
+              print('QUAFU_VALUE FAIL', str(e)[:110])
+          print('PROBE_DONE')
+          EOF
