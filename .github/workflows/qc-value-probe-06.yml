@@ -1,0 +1,50 @@
+name: QC-VALUE-PROBE-06
+on:
+  workflow_dispatch: {}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      QRINGS_KEY_64: ${{ secrets.QRINGS_KEY_64 }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: qrings
+        run: |
+          pip install -q -i https://pypi.org/simple quantumrings-lib 2>&1 | tail -1
+          python3 - <<'EOF'
+          import os
+          k64=os.environ.get('QRINGS_KEY_64',''); k128=os.environ.get('QRINGS_KEY_128','')
+          try:
+            import QuantumRingsLib
+            from quantumrings import QuantumRingsProvider
+            p=QuantumRingsProvider(token=k64)
+            b=p.backends()
+            print('QRINGS-64 backends OK count', len(b) if b else 0)
+          except Exception as e:
+            print('QRINGS-64 ERR', type(e).__name__, str(e)[:140])
+          try:
+            from quantumrings import QuantumRingsProvider
+            p=QuantumRingsProvider(token=k128)
+            b=p.backends()
+            print('QRINGS-128 backends OK count', len(b) if b else 0)
+          except Exception as e:
+            print('QRINGS-128 ERR', type(e).__name__, str(e)[:140])
+          EOF
+      - name: originqc
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1 || pip install -q -i https://pypi.org/simple pyqpanda 2>&1 | tail -1
+          python3 - <<'EOF'
+          import os
+          k=os.environ.get('ORIGINQC_KEY_1','')
+          try:
+            from pyqpanda3 import qcloud as qc3
+            print('ORIGINQC pyqpanda3 import OK')
+          except Exception as e:
+            print('ORIGINQC p3 import ERR', str(e)[:80])
+          try:
+            from pyqpanda import *
+            print('ORIGINQC pyqpanda import OK (key presence-only; cloud login needs qrunes config)')
+          except Exception as e:
+            print('ORIGINQC import ERR', type(e).__name__, str(e)[:100])
+          EOF
