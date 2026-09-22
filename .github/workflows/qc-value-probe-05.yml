@@ -1,0 +1,24 @@
+name: QC-VALUE-PROBE-05
+on:
+  workflow_dispatch: {}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+    steps:
+      - name: quafu
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu 2>&1 | tail -1
+          python3 - <<'EOF'
+          import os
+          tok=os.environ.get('QUAFU_API_TOKEN','')
+          try:
+            from quafu import User
+            u=User(api_token=tok)
+            b=u.get_available_backends()
+            print('QUAFU backends OK count', len(b) if b else 0)
+            print('QUAFU names', ','.join(list(b.keys())[:8]) if isinstance(b,dict) else str(b)[:120])
+          except Exception as e:
+            print('QUAFU ERR', type(e).__name__, str(e)[:150])
+          EOF
