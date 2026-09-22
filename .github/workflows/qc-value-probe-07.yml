@@ -1,0 +1,25 @@
+name: QC-VALUE-PROBE-07
+on:
+  workflow_dispatch: {}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      QRINGS_KEY_64: ${{ secrets.QRINGS_KEY_64 }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+    steps:
+      - name: qrings
+        run: |
+          pip install -q -i https://pypi.org/simple QuantumRingsLib 2>&1 | tail -1
+          python3 - <<'EOF'
+          import os
+          for tag,k in [('64',os.environ.get('QRINGS_KEY_64','')),('128',os.environ.get('QRINGS_KEY_128',''))]:
+            try:
+              import QuantumRingsLib
+              from QuantumRingsLib import QuantumRingsProvider
+              p=QuantumRingsProvider(token=k)
+              b=p.backends()
+              print('QRINGS-'+tag,'backends OK count', len(b) if b else 0, [x.name if hasattr(x,'name') else str(x) for x in list(b)[:4]])
+            except Exception as e:
+              print('QRINGS-'+tag,'ERR', type(e).__name__, str(e)[:140])
+          EOF
