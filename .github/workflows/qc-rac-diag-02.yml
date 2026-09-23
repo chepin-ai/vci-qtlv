@@ -1,0 +1,47 @@
+name: qc-rac-diag-02
+on:
+  workflow_dispatch:
+
+jobs:
+  gate-diag2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      QBRAID_API_KEY: ${{ secrets.QBRAID_API_KEY }}
+    steps:
+      - name: gate support diagnostic wave-2 (ccx/cs/cswap)
+        run: |
+          python3 << 'PYEOF'
+          import os, json, time, requests
+          KEY=os.environ['QBRAID_API_KEY']
+          B='https://api-v2.qbraid.com/api/v1'
+          H={'X-API-Key':KEY,'X-Domain':'qbraid','Content-Type':'application/json'}
+          DEV='qbraid:qbraid:sim:qir-sv'
+          PRE=['OPENQASM 3.0;','include "stdgates.inc";','qubit[3] q;','bit[3] c;','h q[0];','h q[1];','h q[2];']
+          POST=['c[0] = measure q[0];','c[1] = measure q[1];','c[2] = measure q[2];']
+          variants={
+            'ccx':['ccx q[0], q[1], q[2];'],
+            'cs':['cs q[0], q[1];'],
+            'cswap':['cswap q[0], q[1], q[2];'],
+            'cp_small':['cp(0.7853981633974483) q[0], q[1];'],
+            'sx':['sx q[0];'],
+          }
+          def submit(nm,body):
+              q='\n'.join(PRE+body+POST)
+              try:
+                  r=requests.post(B+'/jobs',headers=H,json={'name':nm,'deviceQrn':DEV,'shots':64,
+                      'program':{'format':'qasm3','data':q}},timeout=40)
+                  if r.status_code not in (200,201,202): return ('SUBMIT_ERR',r.text[:100])
+                  qrn=r.json().get('data',{}).get('jobQrn')
+                  dl=time.time()+420
+                  while time.time()<dl:
+                      rr=requests.get(B+'/jobs/'+qrn,headers=H,timeout=30)
+                      st=(rr.json().get('data') or {}).get('status','?')
+                      if st in ('COMPLETED','FAILED','CANCELLED','ERROR'): return (st,'')
+                      time.sleep(5)
+                  return ('TIMEOUT','')
+              except Exception as e: return ('EXC',type(e).__name__)
+          for nm,body in variants.items():
+              st,info=submit('d2-'+nm,body)
+              print('%-9s -> %s %s'%(nm,st,info)); time.sleep(1)
+          PYEOF
