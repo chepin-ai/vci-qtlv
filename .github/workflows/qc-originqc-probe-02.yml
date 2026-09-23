@@ -1,0 +1,43 @@
+name: qc-originqc-probe-02
+on:
+  workflow_dispatch:
+
+jobs:
+  originqc2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: ORIGINQC QCloudService value probe
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, inspect
+          tok=os.environ['ORIGINQC_KEY_1']
+          from pyqpanda3.qcloud import QCloudService, QCloudOptions, QCloudJob, QCloudResult
+          print('QCloudService init:', inspect.signature(QCloudService.__init__))
+          print('QCloudService methods:', [m for m in dir(QCloudService) if not m.startswith('_')])
+          print('QCloudOptions fields:', [m for m in dir(QCloudOptions) if not m.startswith('_')])
+          try:
+              svc=QCloudService(tok)
+              print('login(token) OK')
+          except Exception as e:
+              print('init(token):', type(e).__name__, str(e)[:100])
+              try:
+                  svc=QCloudService(); svc.login(tok); print('login() OK')
+              except Exception as e2:
+                  print('login():', type(e2).__name__, str(e2)[:100]); raise SystemExit
+          for m in ('backends','get_backends','query_backends','chip_list','query_chip_info','list_chips'):
+              f=getattr(svc,m,None)
+              if f:
+                  try:
+                      r=f(); print(m,'->',str(r)[:300])
+                  except Exception as e: print(m,'ERR',type(e).__name__,str(e)[:100])
+          # try a tiny circuit if a submit path is evident
+          from pyqpanda3.core import QCircuit, H, CNOT
+          print('core gates sample OK')
+          for m in ('submit','submit_job','run','create_job'):
+              f=getattr(svc,m,None)
+              if f: print('submit candidate:',m, inspect.signature(f) if callable(f) else '')
+          PYEOF
