@@ -1,0 +1,49 @@
+name: qc-zhou-s-02
+on:
+  workflow_dispatch:
+
+jobs:
+  zhou-small-2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: ORIGINQC probs-path S table (third platform unlock)
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, time
+          from pyqpanda3.qcloud import QCloudService
+          from pyqpanda3.core import QCircuit, QProg, H, CNOT, X, Z, measure
+          svc=QCloudService(os.environ['ORIGINQC_KEY_1'])
+          beo=svc.backend('full_amplitude')
+          def prog_n2(x1,x2,xb):
+              circ=QCircuit(); circ << H(0) << CNOT(0,1)
+              if x1: circ << X(0)
+              if x2: circ << Z(0)
+              if xb: circ << H(0) << H(1)
+              prog=QProg(); prog << circ << measure(0,0) << measure(1,1)
+              return prog
+          def run_probs(x1,x2,xb):
+              job=beo.run(prog_n2(x1,x2,xb), 512)
+              dl=time.time()+240
+              while time.time()<dl:
+                  if 'FINISH' in str(job.status()).upper(): break
+                  time.sleep(6)
+              return job.result().get_probs()
+          for x1 in (0,1):
+              for x2 in (0,1):
+                  for xb in (0,1):
+                      try:
+                          pr=run_probs(x1,x2,xb)
+                          good=0.0
+                          for s,p in pr.items():
+                              ss=str(s).replace(' ','')
+                              c=[int(ch) for ch in ss]
+                              ok=(c[0]^c[1])==(x1 if not xb else x2)
+                              good+=p if ok else 0
+                          print('ORIG n2 x1=%d x2=%d %s S=%.4f  raw=%s'%(x1,x2,'X' if xb else 'Z',good,str(pr)[:60]))
+                      except Exception as e:
+                          print('ORIG ERR',x1,x2,xb,type(e).__name__,str(e)[:120])
+          PYEOF
