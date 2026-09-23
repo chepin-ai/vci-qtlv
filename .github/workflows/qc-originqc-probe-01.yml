@@ -1,0 +1,39 @@
+name: qc-originqc-probe-01
+on:
+  workflow_dispatch:
+
+jobs:
+  originqc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: ORIGINQC qcloud value probe
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, inspect, pkgutil
+          tok=os.environ['ORIGINQC_KEY_1']
+          import pyqpanda3
+          print('pyqpanda3 file:', pyqpanda3.__file__)
+          mods=[m.name for m in pkgutil.iter_modules(pyqpanda3.__path__)]
+          print('submodules:', mods)
+          for cand in ('cloud','qcloud','origin_cloud'):
+              if cand in mods:
+                  mod=__import__('pyqpanda3.'+cand, fromlist=['*'])
+                  print(cand,'dir:',[x for x in dir(mod) if not x.startswith('_')][:30])
+          # try common entry patterns
+          try:
+              from pyqpanda3.cloud import QCloud
+              print('QCloud sig:', inspect.signature(QCloud.__init__) if hasattr(QCloud,'__init__') else '?')
+              print('QCloud methods:', [m for m in dir(QCloud) if not m.startswith('_')])
+          except Exception as e:
+              print('QCloud import:', type(e).__name__, str(e)[:120])
+          try:
+              import pyqpanda3.cloud as cl
+              fns=[(n,f) for n,f in inspect.getmembers(cl) if inspect.isfunction(f) or inspect.isclass(f)]
+              print('cloud members:', [n for n,_ in fns][:25])
+          except Exception as e:
+              print('cloud members err:', type(e).__name__, str(e)[:120])
+          PYEOF
