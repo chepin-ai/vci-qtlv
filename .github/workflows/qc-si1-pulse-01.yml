@@ -1,0 +1,30 @@
+name: qc-si1-pulse-01
+on:
+  workflow_dispatch:
+
+jobs:
+  si1-presence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      QBRAID_API_KEY: ${{ secrets.QBRAID_API_KEY }}
+      QBRAID_ACCESS_TOKEN: ${{ secrets.QBRAID_ACCESS_TOKEN }}
+      IBM_QUANTUM_KEY: ${{ secrets.IBM_QUANTUM_KEY }}
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_64: ${{ secrets.QRINGS_KEY_64 }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+      IBMID_PW: ${{ secrets.IBMID_PW }}
+    steps:
+      - name: SI1 八钥 presence-only 复检 (值不出runner)
+        run: |
+          python3 - << 'PYEOF'
+          import os
+          names=['QBRAID_API_KEY','QBRAID_ACCESS_TOKEN','IBM_QUANTUM_KEY','QUAFU_API_TOKEN','QRINGS_KEY_64','QRINGS_KEY_128','ORIGINQC_KEY_1','IBMID_PW']
+          ok=0
+          for n in names:
+              v=os.environ.get(n,'')
+              print('%-22s presence=%s len=%d'%(n, bool(v), len(v)))
+              ok+=bool(v)
+          print('PRESENT %d/8'%ok)
+          PYEOF
