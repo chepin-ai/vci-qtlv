@@ -1,0 +1,158 @@
+name: qc-rac-rep-02
+on:
+  workflow_dispatch:
+
+jobs:
+  rac-rep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      QBRAID_API_KEY: ${{ secrets.QBRAID_API_KEY }}
+    steps:
+      - name: RAC n=2/n=4 replication on qBraid QIR-SV
+        run: |
+          python3 << 'PYEOF'
+          import os, json, time, requests
+          KEY=os.environ['QBRAID_API_KEY']
+          B='https://api-v2.qbraid.com/api/v1'
+          H={'X-API-Key':KEY,'X-Domain':'qbraid','Content-Type':'application/json'}
+          DEV='qbraid:qbraid:sim:qir-sv'
+          SHOTS=1024
+
+          def enc4(x1,x2):
+              L=[]
+              for _ in range(x1):
+                  L+=['cx q[0], q[1];','x q[0];']
+              if x2%2==1: L.append('z q[1];')
+              if x2==1: L.append('s q[0];')
+              elif x2==2: L.append('z q[0];')
+              elif x2==3: L.append('sdg q[0];')
+              return L
+
+          def qasm3(nq, x1, x2, xbasis, entangled=True):
+              L=['OPENQASM 3.0;','include "stdgates.inc";',
+                 'qubit[%d] q;'%nq,'bit[%d] c;'%nq]
+              if nq==2:
+                  if entangled: L+=['h q[0];','cx q[0], q[1];']
+                  if x1: L.append('x q[0];')
+                  if x2: L.append('z q[0];')
+                  if xbasis: L+=['h q[0];','h q[1];']
+              else:
+                  L+=['h q[0];','h q[1];','cx q[0], q[2];','cx q[1], q[3];']
+                  L+=enc4(x1,x2)
+                  if xbasis:
+                      L+=['swap q[0], q[1];','h q[0];','csdg q[0], q[1];','h q[1];',
+                          'swap q[2], q[3];','h q[2];','csdg q[2], q[3];','h q[3];']
+              for i in range(nq): L.append('c[%d] = measure q[%d];'%(i,i))
+              return '\n'.join(L)
+
+          jobs=[]
+          for x1 in range(2):
+              for x2 in range(2):
+                  for xb in (0,1):
+                      jobs.append(('n2',x1,x2,xb,True,qasm3(2,x1,x2,xb,True)))
+          for (x1,x2) in [(0,0),(1,2),(2,3),(3,1)]:
+              for xb in (0,1):
+                  jobs.append(('n4',x1,x2,xb,True,qasm3(4,x1,x2,xb,True)))
+          for x1 in range(2):
+              for x2 in range(2):
+                  for xb in (0,1):
+                      jobs.append(('sep2',x1,x2,xb,False,qasm3(2,x1,x2,xb,False)))
+          print('total circuits:',len(jobs))
+
+          def submit(name,q):
+              for a in range(4):
+                  try:
+                      r=requests.post(B+'/jobs',headers=H,
+                          json={'name':name,'deviceQrn':DEV,'shots':SHOTS,'program':{'format':'qasm3','data':q}},timeout=40)
+                      if r.status_code in (200,201,202):
+                          j=r.json(); d=j.get('data',j); return d.get('jobQrn') or d.get('qrn') or d.get('id')
+                      print('submit retry',a,r.status_code,r.text[:150])
+                  except Exception as e: print('submit exc',type(e).__name__)
+                  time.sleep(5)
+              return None
+
+          qrns=[]
+          for i,(tag,x1,x2,xb,ent,q) in enumerate(jobs):
+              nm='rac-%s-%d%d-%s-%02d'%(tag,x1,x2,'X' if xb else 'Z',i)
+              qrn=submit(nm,q); qrns.append(qrn)
+              print(i,nm,'->',('OK '+qrn[-12:]) if qrn else 'SUBMIT_FAIL'); time.sleep(1)
+
+          def poll(qrn,dl):
+              while time.time()<dl:
+                  try:
+                      r=requests.get(B+'/jobs/'+qrn,headers=H,timeout=30)
+                      st=(r.json().get('data') or r.json()).get('status','?')
+                      if st in ('COMPLETED','FAILED','CANCELLED','ERROR'): return st
+                  except Exception: pass
+                  time.sleep(6)
+              return 'TIMEOUT'
+
+          def result(qrn):
+              for a in range(3):
+                  try:
+                      r=requests.get(B+'/jobs/'+qrn+'/result',headers=H,timeout=40)
+                      j=r.json()
+                      for path in (('data','counts'),('counts',),('data','measurementCounts'),('result','counts')):
+                          cur=j; ok=True
+                          for k in path:
+                              if isinstance(cur,dict) and k in cur: cur=cur[k]
+                              else: ok=False; break
+                          if ok and isinstance(cur,dict): return cur,j
+                      return None,j
+                  except Exception as e:
+                      print('result exc',type(e).__name__); time.sleep(5)
+              return None,None
+
+          def bits_of(s,order,nb):
+              if order=='qiskit': return [int(ch) for ch in s[::-1]]
+              return [int(ch) for ch in s]
+
+          def succ(tag,x1,x2,xb,counts,order):
+              good=tot=0
+              for s,w in counts.items():
+                  c=bits_of(s,order,2 if tag!='n4' else 4)
+                  if tag=='n4':
+                      A=c[0]+2*c[1]; Bv=c[2]+2*c[3]
+                      ok=(((A-Bv)%4)==x1) if not xb else (((A+Bv)%4)==x2)
+                  else:
+                      ok=((c[0]^c[1])==x1) if not xb else ((c[0]^c[1])==x2)
+                  good+=w if ok else 0; tot+=w
+              return good/tot if tot else 0.0
+
+          dl=time.time()+1500
+          rows=[]
+          for i,(tag,x1,x2,xb,ent,q) in enumerate(jobs):
+              qrn=qrns[i]
+              if not qrn: rows.append((tag,x1,x2,xb,'NOQRN',0,0)); continue
+              st=poll(qrn,dl)
+              if st!='COMPLETED':
+                  print(i,'status',st); rows.append((tag,x1,x2,xb,st,0,0)); continue
+              cnts,raw=result(qrn)
+              if i==0:
+                  print('RAW0:',json.dumps(raw)[:400])
+              if cnts is None:
+                  rows.append((tag,x1,x2,xb,'NOCOUNTS',0,0)); continue
+              sq=succ(tag,x1,x2,xb,cnts,'qiskit'); sr=succ(tag,x1,x2,xb,cnts,'rev')
+              rows.append((tag,x1,x2,xb,'OK',sq,sr))
+              print('%-5s x1=%d x2=%d basis=%s  S_qiskit=%.4f S_rev=%.4f'%(tag,x1,x2,'X' if xb else 'Z',sq,sr))
+
+          def agg(tagf,idx):
+              vs=[r[idx] for r in rows if r[0]==tagf and r[4]=='OK']
+              return sum(vs)/len(vs) if vs else -1
+          print('==== AGGREGATE (qiskit-order / rev-order) ====')
+          for tg in ('n2','n4','sep2'):
+              print('%-5s S=%.4f / %.4f  (n=%d jobs)'%(tg,agg(tg,5),agg(tg,6),sum(1 for r in rows if r[0]==tg)))
+          import math
+          print('Schmidt bound S<=0.5*(1+sqrt(d/n)): n=2 d=1:%.4f d=2:%.4f | n=4 d=1:%.4f d=4:%.4f'%(
+              .5*(1+math.sqrt(1/2)),.5*(1+math.sqrt(2/2)),.5*(1+math.sqrt(1/4)),.5*(1+math.sqrt(4/4))))
+          out={'shots':SHOTS,'rows':[{'tag':r[0],'x1':r[1],'x2':r[2],'basis':'X' if r[3] else 'Z','status':r[4],'S_qiskit':r[5],'S_rev':r[6]} for r in rows]}
+          open('/tmp/rac_results.json','w').write(json.dumps(out,indent=1))
+          print('results written')
+          PYEOF
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rac-results
+          path: /tmp/rac_results.json
