@@ -1,0 +1,114 @@
+name: qc-rac-xplat-02
+on:
+  workflow_dispatch:
+
+jobs:
+  xplat2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+    steps:
+      - name: cross-platform wave-2 — QUAFU(sim+realQPU) + QuantumRings(get_backend)
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu QuantumRingsLib qiskit qiskit-qasm3-import 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, json, inspect, time
+          def S_n2(counts,x1,x2,xb):
+              good=tot=0
+              for s,w in counts.items():
+                  s=str(s).replace(' ','').replace('0b','')
+                  if not s or not set(s)<= {'0','1'}: continue
+                  c=[int(ch) for ch in s[::-1]]
+                  ok=(c[0]^c[1])==(x1 if not xb else x2)
+                  good+=w if ok else 0; tot+=w
+              return good/tot if tot else -1
+
+          print('======== QUAFU ========')
+          from quafu import QuantumCircuit, User, Task
+          u=User(api_token=os.environ['QUAFU_API_TOKEN'])
+          def build_q(x1,x2,xb):
+              qc=QuantumCircuit(2)
+              qc.h(0); qc.cnot(0,1)
+              if x1: qc.x(0)
+              if x2: qc.z(0)
+              if xb: qc.h(0); qc.h(1)
+              qc.measure([0,1])
+              return qc
+          print('config sig:',inspect.signature(Task.config))
+          print('send sig:',inspect.signature(Task.send))
+          t=Task(u)
+          def try_backend(bk, circuits, label):
+              out=[]
+              try:
+                  t.config(backend=bk, shots=512, compile=False)
+              except Exception as e:
+                  print(label,'config ERR',type(e).__name__,str(e)[:120]); return out
+              for (x1,x2,xb) in circuits:
+                      try:
+                          res,ids=t.submit(build_q(x1,x2,xb))
+                          r0=res[0]
+                          cnts=getattr(r0,'counts',None) or getattr(r0,'res',None) or {}
+                          if not isinstance(cnts,dict):
+                              try: cnts=dict(r0)
+                              except Exception: cnts={}
+                          S=S_n2(cnts,x1,x2,xb)
+                          print('%s n2 x1=%d x2=%d %s S=%.4f  raw=%s'%(label,x1,x2,'X' if xb else 'Z',S,str(cnts)[:70]))
+                          out.append((x1,x2,xb,S))
+                      except Exception as e:
+                          print('%s submit ERR'%label,x1,x2,xb,type(e).__name__,str(e)[:150])
+              return out
+          simres=try_backend('ScQ-Sim10',[(x1,x2,xb) for x1 in (0,1) for x2 in (0,1) for xb in (0,1)],'QSIM')
+          # real QPU single-circuit attempt (Baihua Online)
+          try:
+              print('--- real QPU attempt: Baihua ---')
+              t2=Task(u); t2.config(backend='Baihua', shots=512, compile=False)
+              res,ids=t2.submit(build_q(0,0,0))
+              print('Baihua submit returned:',type(res).__name__, str(res)[:120], 'ids:',ids)
+              tid=ids[0] if ids else None
+              if tid:
+                  dl=time.time()+900
+                  while time.time()<dl:
+                      try:
+                          rr=t2.retrieve(tid)
+                          st=str(getattr(rr,'status','?'))
+                          print('Baihua poll:',st[:60])
+                          if 'Completed' in st or 'Finished' in st or 'Success' in st:
+                              cnts=getattr(rr,'counts',None) or {}
+                              print('Baihua n2 (0,0,Z) counts:',str(cnts)[:90],' S=%.4f'%S_n2(cnts,0,0,0))
+                              break
+                          if 'Fail' in st or 'Error' in st or 'Cancel' in st: break
+                      except Exception as e:
+                          print('retrieve exc',type(e).__name__,str(e)[:100])
+                      time.sleep(20)
+          except Exception as e:
+              print('Baihua ERR',type(e).__name__,str(e)[:200])
+
+          print('======== QUANTUMRINGS ========')
+          from QuantumRingsLib import QuantumRingsProvider
+          import qiskit
+          from qiskit import qasm3 as q3, transpile
+          def qasm_n2(x1,x2,xb):
+              L=['OPENQASM 3.0;','include "stdgates.inc";','qubit[2] q;','bit[2] c;',
+                 'h q[0];','cx q[0], q[1];']
+              if x1: L.append('x q[0];')
+              if x2: L.append('z q[0];')
+              if xb: L+=['h q[0];','h q[1];']
+              L+=['c[0] = measure q[0];','c[1] = measure q[1];']
+              return '\n'.join(L)
+          p=QuantumRingsProvider(token=os.environ['QRINGS_KEY_128'])
+          be=p.get_backend('scarlet_quantum_rings')
+          print('QR backend obj:',type(be).__name__)
+          for (x1,x2) in [(0,0),(1,0),(0,1),(1,1)]:
+              for xb in (0,1):
+                  try:
+                      qc=q3.loads(qasm_n2(x1,x2,xb))
+                      try: qc=transpile(qc, backend=be)
+                      except Exception: pass
+                      job=be.run(qc, shots=512)
+                      cnts=job.result().get_counts()
+                      print('QR n2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_n2(cnts,x1,x2,xb)))
+                  except Exception as e:
+                      print('QR run ERR',x1,x2,xb,type(e).__name__,str(e)[:150])
+          PYEOF
