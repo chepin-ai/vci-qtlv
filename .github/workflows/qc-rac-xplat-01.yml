@@ -1,0 +1,89 @@
+name: qc-rac-xplat-01
+on:
+  workflow_dispatch:
+
+jobs:
+  xplat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+    steps:
+      - name: cross-platform RAC n=2 — QUAFU + QuantumRings
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu QuantumRingsLib qiskit qiskit-qasm3-import 2>&1 | tail -2
+          python3 << 'PYEOF'
+          import os, json, inspect
+          QASM_TPL = None
+          def qasm_n2(x1,x2,xb):
+              L=['OPENQASM 3.0;','include "stdgates.inc";','qubit[2] q;','bit[2] c;',
+                 'h q[0];','cx q[0], q[1];']
+              if x1: L.append('x q[0];')
+              if x2: L.append('z q[0];')
+              if xb: L+=['h q[0];','h q[1];']
+              L+=['c[0] = measure q[0];','c[1] = measure q[1];']
+              return '\n'.join(L)
+          def S_n2(counts,x1,x2,xb):
+              good=tot=0
+              for s,w in counts.items():
+                  s=s.replace(' ','')
+                  c=[int(ch) for ch in s[::-1]]
+                  ok=(c[0]^c[1])==(x1 if not xb else x2)
+                  good+=w if ok else 0; tot+=w
+              return good/tot if tot else -1
+
+          print('======== QUAFU ========')
+          try:
+              from quafu import QuantumCircuit, User, Task
+              tok=os.environ['QUAFU_API_TOKEN']
+              u=User(api_token=tok)
+              backs=u.get_available_backends()
+              names=[(k, getattr(backs[k],'status','?')) for k in list(backs)]
+              print('backends:',names)
+              print('Task methods:',[m for m in dir(Task) if not m.startswith('_')])
+              try: print('submit sig:',inspect.signature(Task.submit))
+              except Exception as e: print('sig err',e)
+              def build_q(x1,x2,xb):
+                  qc=QuantumCircuit(2)
+                  qc.h(0); qc.cnot(0,1)
+                  if x1: qc.x(0)
+                  if x2: qc.z(0)
+                  if xb: qc.h(0); qc.h(1)
+                  qc.measure([0,1])
+                  return qc
+              t=Task(u)
+              cand=[k for k in backs if 'sim' in k.lower()] or list(backs)[:1]
+              print('candidate backend:',cand)
+              bk=cand[0]
+              for (x1,x2) in [(0,0),(1,0),(0,1),(1,1)]:
+                  for xb in (0,1):
+                      try:
+                          res=t.submit(build_q(x1,x2,xb), backend=bk, shots=512, name='rac-xplat')
+                          print('submitted',x1,x2,xb, type(res).__name__, str(res)[:80])
+                      except Exception as e:
+                          print('submit ERR',x1,x2,xb,type(e).__name__,str(e)[:150])
+          except Exception as e:
+              print('QUAFU FATAL',type(e).__name__,str(e)[:200])
+
+          print('======== QUANTUMRINGS ========')
+          try:
+              from QuantumRingsLib import QuantumRingsProvider
+              import qiskit
+              from qiskit import qasm3 as q3
+              p=QuantumRingsProvider(token=os.environ['QRINGS_KEY_128'])
+              bs=p.backends()
+              print('QR backends:',[getattr(b,'name',str(b)) for b in bs])
+              be=bs[0]
+              for (x1,x2) in [(0,0),(1,0),(0,1),(1,1)]:
+                  for xb in (0,1):
+                      try:
+                          qc=q3.loads(qasm_n2(x1,x2,xb))
+                          job=be.run(qc, shots=512)
+                          cnts=job.result().get_counts()
+                          print('QR n2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_n2(cnts,x1,x2,xb)))
+                      except Exception as e:
+                          print('QR run ERR',x1,x2,xb,type(e).__name__,str(e)[:150])
+          except Exception as e:
+              print('QR FATAL',type(e).__name__,str(e)[:200])
+          PYEOF
