@@ -1,0 +1,116 @@
+name: qc-zhou-s-01
+on:
+  workflow_dispatch:
+
+jobs:
+  zhou-small:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: 小周天压测 — QUAFU全载 d2余量+拍数扫描+n=8跨平台 + ScQ-P5权限试 + ORIG counts破
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, time, json
+          def mkS(rule):
+              def S(counts,tag,x1,x2,xb):
+                  good=tot=0
+                  for s,w in counts.items():
+                      ss=str(s).replace(' ','').replace('0b','')
+                      if not ss or not set(ss)<={'0','1'}: continue
+                      c=[int(ch) for ch in ss]  # quafu: q0 居左 → c[i]=qubit i
+                      good+=w if rule(c,tag,x1,x2,xb) else 0; tot+=w
+                  return good/tot if tot else -1
+              return S
+          def rule(c,tag,x1,x2,xb):
+              if tag=='n2': return (c[0]^c[1])==(x1 if not xb else x2)
+              if tag in ('n4','d2'):
+                  A=c[0]+2*c[1]; B=c[2]+2*c[3]
+                  return ((A-B)%4)==x1 if not xb else ((A+B)%4)==x2
+              A=c[0]+2*c[1]+4*c[2]; B=c[3]+2*c[4]+4*c[5]
+              return ((A-B)%8)==x1 if not xb else ((A+B)%8)==x2
+          S=mkS(rule)
+
+          from quafu import QuantumCircuit, User, Task
+          u=User(api_token=os.environ['QUAFU_API_TOKEN'])
+          t=Task(u)
+          def enc4(qc,x1,x2):
+              for _ in range(x1): qc.cnot(0,1); qc.x(0)
+              if x2%2==1: qc.z(1)
+              if x2==1: qc.s(0)
+              elif x2==2: qc.z(0)
+              elif x2==3: qc.sdg(0)
+          def qft4dg(qc,a,b):
+              qc.swap(a,b); qc.h(a); qc.cp(a,b,-1.5707963267948966); qc.h(b)
+          def enc8(qc,x1,x2):
+              for _ in range(x1): qc.toffoli(0,1,2); qc.cnot(0,1); qc.x(0)
+              for _ in range(x2): qc.t(0); qc.s(1); qc.z(2)
+          def qft8dg(qc,b):
+              qc.swap(b,b+2); qc.h(b); qc.cp(b,b+1,-1.5707963267948966); qc.h(b+1)
+              qc.cp(b,b+2,-0.7853981633974483); qc.cp(b+1,b+2,-1.5707963267948966); qc.h(b+2)
+          def build(tag,x1,x2,xb):
+              if tag=='n2':
+                  qc=QuantumCircuit(2); qc.h(0); qc.cnot(0,1)
+                  if x1: qc.x(0)
+                  if x2: qc.z(0)
+                  if xb: qc.h(0); qc.h(1)
+                  qc.measure([0,1]); return qc
+              if tag=='d2':
+                  qc=QuantumCircuit(4); qc.h(0); qc.cnot(0,2)
+                  enc4(qc,x1,x2)
+                  if xb: qft4dg(qc,0,1); qft4dg(qc,2,3)
+                  qc.measure([0,1,2,3]); return qc
+              qc=QuantumCircuit(6)
+              for q in (0,1,2): qc.h(q)
+              qc.cnot(0,3); qc.cnot(1,4); qc.cnot(2,5)
+              enc8(qc,x1,x2)
+              if xb: qft8dg(qc,0); qft8dg(qc,3)
+              qc.measure([0,1,2,3,4,5]); return qc
+          def runone(tag,x1,x2,xb,shots,bk='ScQ-Sim10'):
+              try:
+                  t.config(backend=bk, shots=shots, compile=True)
+                  out=t.submit(build(tag,x1,x2,xb))
+                  r0=out[0] if isinstance(out,tuple) else out
+                  cnts=getattr(r0,'counts',{}) or {}
+                  return S(cnts,tag,x1,x2,xb), sum(cnts.values())
+              except Exception as e:
+                  return None, '%s %s'%(type(e).__name__,str(e)[:110])
+          print('==== d2 余量 (QUAFU补位) ====')
+          for (x1,x2,xb) in [(1,1,1),(2,2,0),(2,2,1),(3,3,0),(3,3,1)]:
+              v,info=runone('d2',x1,x2,xb,1024)
+              print('d2 x1=%d x2=%d %s S=%s'%(x1,x2,'X' if xb else 'Z', ('%.4f'%v) if v is not None else 'ERR '+info))
+          print('==== 拍数扫描 n2(1,1,X) ====')
+          for sh in (256,4096):
+              v,info=runone('n2',1,1,1,sh)
+              print('shots=%d S=%s'%(sh, ('%.4f'%v) if v is not None else 'ERR '+info))
+          print('==== n=8 跨平台 (QUAFU 6比特) ====')
+          for (x1,x2) in [(0,0),(1,3),(3,5),(5,7),(7,7),(2,6)]:
+              for xb in (0,1):
+                  v,info=runone('n8',x1,x2,xb,1024)
+                  print('n8 x1=%d x2=%d %s S=%s'%(x1,x2,'X' if xb else 'Z', ('%.4f'%v) if v is not None else 'ERR '+info))
+          print('==== ScQ-P5 真QPU权限试 ====')
+          v,info=runone('n2',0,0,0,128,bk='ScQ-P5')
+          print('ScQ-P5:', ('S=%.4f'%v) if v is not None else 'ERR '+info)
+
+          print('==== ORIGINQC counts 破 (get_probs) ====')
+          try:
+              from pyqpanda3.qcloud import QCloudService
+              from pyqpanda3.core import QCircuit, QProg, H, CNOT, measure
+              svc=QCloudService(os.environ['ORIGINQC_KEY_1'])
+              beo=svc.backend('full_amplitude')
+              circ=QCircuit(); circ << H(0) << CNOT(0,1)
+              prog=QProg(); prog << circ << measure(0,0) << measure(1,1)
+              job=beo.run(prog, 512)
+              dl=time.time()+240
+              while time.time()<dl:
+                  if 'FINISH' in str(job.status()).upper(): break
+                  time.sleep(8)
+              res=job.result()
+              print('res methods:', [m for m in dir(res) if not m.startswith('_')])
+              print('counts:', str(res.get_counts())[:100])
+              print('probs:', str(res.get_probs())[:100])
+          except Exception as e: print('ORIG ERR',type(e).__name__,str(e)[:150])
+          PYEOF
