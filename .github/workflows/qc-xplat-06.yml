@@ -1,0 +1,134 @@
+name: qc-xplat-06
+on:
+  workflow_dispatch:
+
+jobs:
+  xplat6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      QUAFU_API_TOKEN: ${{ secrets.QUAFU_API_TOKEN }}
+      QRINGS_KEY_128: ${{ secrets.QRINGS_KEY_128 }}
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: three-platform convergence (source-verified adapters)
+        run: |
+          pip install -q -i https://pypi.org/simple pyquafu QuantumRingsLib pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os, json, time
+          def S_of(counts,tag,x1,x2,xb):
+              good=tot=0
+              for s,w in counts.items():
+                  s=str(s).replace(' ','').replace('0b','')
+                  if not s or not set(s)<={'0','1'}: continue
+                  c=[int(ch) for ch in s[::-1]]
+                  if tag=='n2': ok=(c[0]^c[1])==(x1 if not xb else x2)
+                  else:
+                      A=c[0]+2*c[1]; Bv=c[2]+2*c[3]
+                      ok=(((A-Bv)%4)==x1) if not xb else (((A+Bv)%4)==x2)
+                  good+=w if ok else 0; tot+=w
+              return good/tot if tot else -1
+          CASES8=[(x1,x2,xb) for x1 in (0,1) for x2 in (0,1) for xb in (0,1)]
+
+          print('======== QUAFU ScQ-Sim10 ========')
+          try:
+              from quafu import QuantumCircuit, User, Task
+              u=User(api_token=os.environ['QUAFU_API_TOKEN'])
+              def build_q(x1,x2,xb):
+                  qc=QuantumCircuit(2); qc.h(0); qc.cnot(0,1)
+                  if x1: qc.x(0)
+                  if x2: qc.z(0)
+                  if xb: qc.h(0); qc.h(1)
+                  qc.measure([0,1]); return qc
+              t=Task(u); t.config(backend='ScQ-Sim10', shots=512, compile=True)
+              for (x1,x2,xb) in CASES8:
+                  try:
+                      out=t.submit(build_q(x1,x2,xb))
+                      r0=out[0] if isinstance(out,tuple) else out
+                      cnts=getattr(r0,'counts',{}) or {}
+                      print('QSIM n2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_of(cnts,'n2',x1,x2,xb)))
+                  except Exception as e: print('QSIM ERR',x1,x2,xb,type(e).__name__,str(e)[:130])
+          except Exception as e: print('QSIM FATAL',type(e).__name__,str(e)[:150])
+
+          print('======== QUANTUMRINGS core SDK (native build) ========')
+          try:
+              from QuantumRingsLib import QuantumRingsProvider, QuantumRegister, ClassicalRegister, QuantumCircuit as QRC
+              p=QuantumRingsProvider(token=os.environ['QRINGS_KEY_128'])
+              be=p.get_backend('scarlet_quantum_rings')
+              def qr_n2(x1,x2,xb):
+                  q=QuantumRegister(2,'q'); c=ClassicalRegister(2,'c'); qc=QRC(q,c)
+                  qc.h(0); qc.cnot(0,1)
+                  if x1: qc.x(0)
+                  if x2: qc.z(0)
+                  if xb: qc.h(0); qc.h(1)
+                  qc.measure_all()
+                  job=be.run(qc, shots=512, mode='sync')
+                  return job.result().get_counts()
+              ok_first=None
+              for (x1,x2,xb) in CASES8:
+                  try:
+                      cnts=qr_n2(x1,x2,xb); ok_first=True
+                      print('QR n2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_of(cnts,'n2',x1,x2,xb)))
+                  except Exception as e:
+                      print('QR n2 ERR',x1,x2,xb,type(e).__name__,str(e)[:160])
+              if ok_first:
+                  print('--- QR d2 remainder + shots sweep ---')
+                  def qr_n2_sh(shots):
+                      q=QuantumRegister(2,'q'); c=ClassicalRegister(2,'c'); qc=QRC(q,c)
+                      qc.h(0); qc.cnot(0,1); qc.x(0); qc.z(0); qc.h(0); qc.h(1); qc.measure_all()
+                      job=be.run(qc, shots=shots, mode='sync')
+                      return job.result().get_counts()
+                  def qr_d2(x1,x2,xb,shots=1024):
+                      q=QuantumRegister(4,'q'); c=ClassicalRegister(4,'c'); qc=QRC(q,c)
+                      qc.h(0); qc.cnot(0,2)
+                      for _ in range(x1): qc.cnot(0,1); qc.x(0)
+                      if x2%2==1: qc.z(1)
+                      if x2==1: qc.s(0)
+                      elif x2==2: qc.z(0)
+                      elif x2==3: qc.sdg(0)
+                      if xb:
+                          th=-1.5707963267948966
+                          for (a,b) in ((0,1),(2,3)):
+                              qc.swap(a,b)
+                              qc.h(a)
+                              qc.rz(th/2,b); qc.cnot(a,b); qc.rz(-th/2,b); qc.cnot(a,b); qc.rz(th/2,a)
+                              qc.h(b)
+                      qc.measure_all()
+                      job=be.run(qc, shots=shots, mode='sync')
+                      return job.result().get_counts()
+                  for (x1,x2,xb) in [(1,1,1),(2,2,0),(2,2,1),(3,3,0),(3,3,1)]:
+                      try:
+                          cnts=qr_d2(x1,x2,xb)
+                          print('QR d2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_of(cnts,'d2',x1,x2,xb)))
+                      except Exception as e: print('QR d2 ERR',x1,x2,xb,type(e).__name__,str(e)[:130])
+                  for sh in (256,4096):
+                      try:
+                          cnts=qr_n2_sh(sh)
+                          print('QR n2(1,1,X) sh=%d S=%.4f'%(sh,S_of(cnts,'n2',1,1,1)))
+                      except Exception as e: print('QR sweep ERR',sh,type(e).__name__,str(e)[:130])
+          except Exception as e: print('QR FATAL',type(e).__name__,str(e)[:200])
+
+          print('======== ORIGINQC full_amplitude ========')
+          try:
+              from pyqpanda3.qcloud import QCloudService
+              from pyqpanda3.core import QCircuit, QProg, H, CNOT, X, Z, measure
+              svc=QCloudService(os.environ['ORIGINQC_KEY_1'])
+              beo=svc.backend('full_amplitude')
+              def orig_n2(x1,x2,xb):
+                  circ=QCircuit()
+                  circ << H(0) << CNOT(0,1)
+                  if x1: circ << X(0)
+                  if x2: circ << Z(0)
+                  if xb: circ << H(0) << H(1)
+                  prog=QProg()
+                  prog << circ << measure(0,0) << measure(1,1)
+                  job=beo.run([prog], 512)
+                  res=job.result()
+                  return res.get_counts()
+              for (x1,x2,xb) in CASES8:
+                  try:
+                      cnts=orig_n2(x1,x2,xb)
+                      print('ORIG n2 x1=%d x2=%d %s S=%.4f'%(x1,x2,'X' if xb else 'Z',S_of(cnts,'n2',x1,x2,xb)))
+                  except Exception as e: print('ORIG ERR',x1,x2,xb,type(e).__name__,str(e)[:130])
+          except Exception as e: print('ORIG FATAL',type(e).__name__,str(e)[:200])
+          PYEOF
