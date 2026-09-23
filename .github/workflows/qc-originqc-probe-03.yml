@@ -1,0 +1,36 @@
+name: qc-originqc-probe-03
+on:
+  workflow_dispatch:
+
+jobs:
+  originqc3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: ORIGINQC QCloudService defensive probe
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os
+          tok=os.environ['ORIGINQC_KEY_1']
+          from pyqpanda3.qcloud import QCloudService
+          ms=[m for m in dir(QCloudService) if not m.startswith('_')]
+          print('QCloudService methods:', ms)
+          print('docs:', {m: (getattr(QCloudService,m).__doc__ or '')[:150] for m in ms[:12]})
+          svc=None
+          for how in ('ctor','login'):
+              try:
+                  if how=='ctor': svc=QCloudService(tok)
+                  else: svc=QCloudService(); svc.login(tok)
+                  print(how,'OK'); break
+              except Exception as e:
+                  print(how,'ERR',type(e).__name__,str(e)[:120])
+          if svc:
+              for m in ms:
+                  if any(k in m.lower() for k in ('back','chip','machine','list','query')):
+                      try:
+                          r=getattr(svc,m)(); print(m,'->',str(r)[:300])
+                      except Exception as e: print(m,'ERR',type(e).__name__,str(e)[:120])
+          PYEOF
