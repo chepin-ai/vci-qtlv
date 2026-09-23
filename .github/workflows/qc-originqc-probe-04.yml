@@ -1,0 +1,44 @@
+name: qc-originqc-probe-04
+on:
+  workflow_dispatch:
+
+jobs:
+  originqc4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: ORIGINQC backend submit probe
+        run: |
+          pip install -q -i https://pypi.org/simple pyqpanda3 2>&1 | tail -1
+          python3 << 'PYEOF'
+          import os
+          tok=os.environ['ORIGINQC_KEY_1']
+          from pyqpanda3.qcloud import QCloudService
+          from pyqpanda3.core import QCircuit, H, CNOT, X, Z, measure
+          svc=QCloudService(tok)
+          be=svc.backend('full_amplitude')
+          print('backend obj:', type(be).__name__)
+          ms=[m for m in dir(be) if not m.startswith('_')]
+          print('backend methods:', ms)
+          print('docs:', {m:(getattr(type(be),m).__doc__ or '')[:120] for m in ms if m in dir(type(be))})
+          circ=QCircuit()
+          circ.push_back(H(0)); circ.push_back(CNOT(0,1))
+          try:
+              from pyqpanda3.core import measure as meas_fn
+              circ.push_back(meas_fn(0,0)); circ.push_back(meas_fn(1,1))
+          except Exception as e:
+              print('measure push:', type(e).__name__, str(e)[:100])
+          for m in ms:
+              if any(k in m.lower() for k in ('run','submit','exec','job','measure')):
+                  try:
+                      r=getattr(be,m)(circ, 512) if m!='submit_job' else getattr(be,m)(circ,512,'probe')
+                      print(m,'->',str(r)[:200])
+                  except TypeError:
+                      try:
+                          r=getattr(be,m)(circ); print(m,'(circ only) ->',str(r)[:200])
+                      except Exception as e: print(m,'ERR2',type(e).__name__,str(e)[:120])
+                  except Exception as e:
+                      print(m,'ERR',type(e).__name__,str(e)[:120])
+          PYEOF
