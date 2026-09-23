@@ -1,0 +1,164 @@
+name: qc-rac-rep-04
+on:
+  workflow_dispatch:
+
+jobs:
+  rac-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      QBRAID_API_KEY: ${{ secrets.QBRAID_API_KEY }}
+    steps:
+      - name: RAC stress wave — n=8 + n=4 exhaustive + d=2 Schmidt + shots sweep
+        run: |
+          python3 << 'PYEOF'
+          import os, json, time, requests
+          KEY=os.environ['QBRAID_API_KEY']
+          B='https://api-v2.qbraid.com/api/v1'
+          H={'X-API-Key':KEY,'X-Domain':'qbraid','Content-Type':'application/json'}
+          DEV='qbraid:qbraid:sim:qir-sv'
+
+          def enc4(x1,x2):
+              L=[]
+              for _ in range(x1): L+=['cx q[0], q[1];','x q[0];']
+              if x2%2==1: L.append('z q[1];')
+              if x2==1: L.append('s q[0];')
+              elif x2==2: L.append('z q[0];')
+              elif x2==3: L.append('sdg q[0];')
+              return L
+
+          def enc8(x1,x2):
+              L=[]
+              for _ in range(x1): L+=['ccx q[0], q[1], q[2];','cx q[0], q[1];','x q[0];']
+              for _ in range(x2): L+=['t q[0];','s q[1];','z q[2];']
+              return L
+
+          def qft4dg(b0,b1):
+              return ['swap q[%d], q[%d];'%(b0,b1),'h q[%d];'%b0,
+                      'cp(-1.5707963267948966) q[%d], q[%d];'%(b0,b1),'h q[%d];'%b1]
+
+          def qft8dg(b):
+              return ['swap q[%d], q[%d];'%(b,b+2),'h q[%d];'%b,
+                      'cp(-1.5707963267948966) q[%d], q[%d];'%(b,b+1),'h q[%d];'%(b+1),
+                      'cp(-0.7853981633974483) q[%d], q[%d];'%(b,b+2),
+                      'cp(-1.5707963267948966) q[%d], q[%d];'%(b+1,b+2),'h q[%d];'%(b+2)]
+
+          def qasm3(tag,x1,x2,xb):
+              if tag=='n2':
+                  nq=2; L=['h q[0];','cx q[0], q[1];']
+                  if x1: L.append('x q[0];')
+                  if x2: L.append('z q[0];')
+                  if xb: L+=['h q[0];','h q[1];']
+              elif tag=='n4':
+                  nq=4; L=['h q[0];','h q[1];','cx q[0], q[2];','cx q[1], q[3];']+enc4(x1,x2)
+                  if xb: L+=qft4dg(0,1)+qft4dg(2,3)
+              elif tag=='d2':
+                  nq=4; L=['h q[0];','cx q[0], q[2];']+enc4(x1,x2)
+                  if xb: L+=qft4dg(0,1)+qft4dg(2,3)
+              else:
+                  nq=6; L=['h q[0];','h q[1];','h q[2];','cx q[0], q[3];','cx q[1], q[4];','cx q[2], q[5];']+enc8(x1,x2)
+                  if xb: L+=qft8dg(0)+qft8dg(3)
+              pre=['OPENQASM 3.0;','include "stdgates.inc";','qubit[%d] q;'%nq,'bit[%d] c;'%nq]
+              post=['c[%d] = measure q[%d];'%(i,i) for i in range(nq)]
+              return '\n'.join(pre+L+post)
+
+          jobs=[]
+          for (x1,x2) in [(0,0),(1,3),(3,5),(5,7),(7,7),(2,6)]:
+              for xb in (0,1): jobs.append(('n8',x1,x2,xb,1024))
+          for x1 in range(4):
+              for x2 in range(4):
+                  for xb in (0,1): jobs.append(('n4',x1,x2,xb,1024))
+          for (x1,x2) in [(0,0),(1,1),(2,2),(3,3)]:
+              for xb in (0,1): jobs.append(('d2',x1,x2,xb,1024))
+          for sh in (256,4096): jobs.append(('n2',1,1,1,sh))
+          print('total circuits:',len(jobs))
+
+          def submit(name,q,shots):
+              for a in range(4):
+                  try:
+                      r=requests.post(B+'/jobs',headers=H,json={'name':name,'deviceQrn':DEV,
+                          'shots':shots,'program':{'format':'qasm3','data':q}},timeout=40)
+                      if r.status_code in (200,201,202):
+                          return r.json().get('data',{}).get('jobQrn')
+                      print('submit retry',a,r.status_code,r.text[:120])
+                  except Exception as e: print('submit exc',type(e).__name__)
+                  time.sleep(5)
+              return None
+
+          qrns=[]
+          for i,(tag,x1,x2,xb,sh) in enumerate(jobs):
+              nm='rac4-%s-%d%d-%s-%02d'%(tag,x1,x2,'X' if xb else 'Z',i)
+              qrn=submit(nm,qasm3(tag,x1,x2,xb),sh); qrns.append(qrn)
+              print(i,nm,'->',('OK '+qrn[-8:]) if qrn else 'SUBMIT_FAIL'); time.sleep(1)
+
+          def poll(qrn,dl):
+              while time.time()<dl:
+                  try:
+                      r=requests.get(B+'/jobs/'+qrn,headers=H,timeout=30)
+                      st=(r.json().get('data') or {}).get('status','?')
+                      if st in ('COMPLETED','FAILED','CANCELLED','ERROR'): return st
+                  except Exception: pass
+                  time.sleep(6)
+              return 'TIMEOUT'
+
+          def result(qrn):
+              for a in range(3):
+                  try:
+                      j=requests.get(B+'/jobs/'+qrn+'/result',headers=H,timeout=40).json()
+                      for path in (('data','resultData','measurementCounts'),('data','counts'),('counts',)):
+                          cur=j; ok=True
+                          for k in path:
+                              if isinstance(cur,dict) and k in cur: cur=cur[k]
+                              else: ok=False; break
+                          if ok and isinstance(cur,dict): return cur,j
+                      return None,j
+                  except Exception as e: print('result exc',type(e).__name__); time.sleep(5)
+              return None,None
+
+          def succ(tag,x1,x2,xb,counts):
+              good=tot=0
+              for s,w in counts.items():
+                  c=[int(ch) for ch in s[::-1]]
+                  if tag=='n8':
+                      A=c[0]+2*c[1]+4*c[2]; Bv=c[3]+2*c[4]+4*c[5]
+                      ok=(((A-Bv)%8)==x1) if not xb else (((A+Bv)%8)==x2)
+                  elif tag in ('n4','d2'):
+                      A=c[0]+2*c[1]; Bv=c[2]+2*c[3]
+                      ok=(((A-Bv)%4)==x1) if not xb else (((A+Bv)%4)==x2)
+                  else:
+                      ok=((c[0]^c[1])==(x1 if not xb else x2))
+                  good+=w if ok else 0; tot+=w
+              return good/tot if tot else 0.0
+
+          dl=time.time()+2400
+          rows=[]
+          for i,(tag,x1,x2,xb,sh) in enumerate(jobs):
+              qrn=qrns[i]
+              if not qrn: rows.append((tag,x1,x2,xb,'NOQRN',0)); continue
+              st=poll(qrn,dl)
+              if st!='COMPLETED':
+                  print(i,'status',st); rows.append((tag,x1,x2,xb,st,0)); continue
+              cnts,raw=result(qrn)
+              if i==0: print('RAW0:',json.dumps(raw)[:300])
+              if cnts is None: rows.append((tag,x1,x2,xb,'NOCOUNTS',0)); continue
+              S=succ(tag,x1,x2,xb,cnts); rows.append((tag,x1,x2,xb,'OK',S))
+              print('%-3s x1=%d x2=%d %s sh=%-4d S=%.4f'%(tag,x1,x2,'X' if xb else 'Z',sh,S))
+
+          def agg(tf):
+              vs=[r[5] for r in rows if r[0]==tf and r[4]=='OK']; return (sum(vs)/len(vs),len(vs)) if vs else (-1,0)
+          print('==== AGGREGATE ====')
+          for tg in ('n2','n4','d2','n8'):
+              m,n=agg(tg); print('%-3s S=%.4f (n=%d)'%(tg,m,n))
+          zb=[r[5] for r in rows if r[0]=='d2' and r[3]==0 and r[4]=='OK']
+          xb2=[r[5] for r in rows if r[0]=='d2' and r[3]==1 and r[4]=='OK']
+          if zb and xb2: print('d2 ladder: Z=%.4f X=%.4f avg=%.4f (bounds d1=0.75 d2=0.8536 d4=1.0)'%(sum(zb)/len(zb),sum(xb2)/len(xb2),(sum(zb)+sum(xb2))/(len(zb)+len(xb2))))
+          out={'rows':[{'tag':r[0],'x1':r[1],'x2':r[2],'basis':'X' if r[3] else 'Z','status':r[4],'S':r[5]} for r in rows]}
+          open('/tmp/rac4_results.json','w').write(json.dumps(out,indent=1))
+          print('results written')
+          PYEOF
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rac4-results
+          path: /tmp/rac4_results.json
