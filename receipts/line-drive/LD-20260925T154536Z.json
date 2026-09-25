@@ -1,0 +1,23 @@
+{
+ "v": "LINE-DRIVE-01",
+ "ts": "2026-09-25T15:45:36Z",
+ "line": "qtlv",
+ "repos": [
+  "qtlv-quantum-encoder"
+ ],
+ "events": [
+  {
+   "kind": "inbox",
+   "repo": "qtlv-quantum-encoder",
+   "ref": "probe-20260925T154504Z-qtlv.md",
+   "head": "# PROBE qtlv 20260925T154504Z\nLINE-DRIVE-01 联通探针: 公域塔驱动私域仓链路验证（rev5 收口轮 R3）\n期望: vci-qtlv line-drive 读本件 → 回写 outbox/ack-*.json → 塔内 receipts/line-drive/ 落账\n"
+  }
+ ],
+ "acked": [
+  {
+   "repo": "qtlv-quantum-encoder",
+   "ref": "probe-20260925T154504Z-qtlv.md",
+   "http": 201
+  }
+ ]
+}
