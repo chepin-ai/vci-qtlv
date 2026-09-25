@@ -35,6 +35,7 @@
   "ANS-SI70-QTLV-01.md": "64868af037",
   "ANS-TASK-CISVR-ORDER-KEYFP-OVR-01md-TOWER03.md": "dc4e16a645",
   "ANS-TASK-CISVR-WAKE-RELAY-01-QTLV-TOWER.md": "3353a511d2",
+  "ANS-WAKE-OTP-QLV-QTLV-20260924T182400Zmd-TOWER03.md": "4ce8029e09",
   "ANS-WAVE-68-QTLV-01.md": "ccaec2c746",
   "ANS-WILDQ-SUBMIT-01-TOWER.md": "c37e736b24",
   "ANS-WQ3-IMAGE-QLV-20260923T1730Zmd-TOWER03.md": "c9421afdea",
@@ -69,6 +70,7 @@
   "TASK-WILDQ-01-qtlv-20260911T1855Z.json": "bb0b352222",
   "TASKACK-EVAL-WAVE-01-20260913T091700Z.md": "fb5511df2c",
   "TASKACK-TASK-PHI-CHAIN-02-20260913T091700Z.md": "0758a749f5",
+  "WAKE-OTP-QLV-QTLV-20260924T182400Z.md": "35db19f9aa",
   "WQ3-IMAGE-QLV-20260923T1730Z.md": "51aa8a3721"
  },
  "chepin-ai/vci-inbox/公告板": {
@@ -122,6 +124,7 @@
   "qlv-board-131-relay-20260915T0415Z.md": "97ec547e6d",
   "qlv-board-132-relay-20260923T1705Z.md": "b7e11692e8",
   "qlv-resume-seat-20260924T145310Z.md": "0a4448b9fb",
+  "qlv-si6-v02-wq5-20260924T182400Z.md": "dbbf2aef0d",
   "usrm-253-si3-selfdrive-sicoupling-20260911T1756Z.md": "fdacfff6cf",
   "usrm-254-si3loop-census-20260911T1806Z.md": "51daa5329d",
   "usrm-255-wildq-census-20260911T1845Z.md": "b96d0705e2",
@@ -419,6 +422,7 @@
   "DISC-CLOSE-usrm-20260912T101242Z.md": "5a5d2d4a71",
   "DISC-CLOSE-vinf-20260912T101308Z.md": "bf364920e5",
   "DISC-NEUMECH-01-qtlv-20260913T131611Z.md": "3254af2cbb",
+  "DISCUSS-3147-TRIFECTA-qgl-20260924.md": "b4e061bf17",
   "EXP-FLOOR-01.md": "a91d96a0bb",
   "FED-CHARTER-01-v11-DELTA-usrm-20260914T1955Z.md": "cf34fce4ad",
   "FED-DEBATE-92-01-qlv.md": "c7624b0f42",
@@ -1323,6 +1327,7 @@
   "cfts-voice-20260923T140740Z.md": "4db34fc952",
   "cfts-voice-20260923T230028Z.md": "835652b085",
   "cfts-voice-20260924T115917Z.md": "b08ef30c10",
+  "cfts-voice-20260925T075922Z.md": "59c32c5489",
   "cisvr-101-EXP048统一范式.md": "69ea7baaa6",
   "cisvr-102-广深实验借范.md": "095e0d4f7b",
   "cisvr-103-全局公告-直接OTP介入.md": "f35edadfcf",
@@ -1548,7 +1553,6 @@
   "lgt-08-engine-decision-rebuild.md": "4bfbf57e07",
   "lgt-09-rfc03-answer.md": "1a089e8d3f",
   "lgt-10-qksa-answer.md": "8c8c1d7e4b",
-  "lgt-100-vinf-self-excite-verdict-matrix-wildq.md": "667f51bc4e",
-  "lgt-101-si5-vote-visible-test-honesty-esc-lane.md": "ab659019c4"
+  "lgt-100-vinf-self-excite-verdict-matrix-wildq.md": "667f51bc4e"
  }
 }
