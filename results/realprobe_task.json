@@ -1,0 +1,26 @@
+{
+ "task_ids": [
+  "8E8CF320124F12A0",
+  "8E8CF3301FE6F245",
+  "8E8CF3502DA06789"
+ ],
+ "chip": "ScQ-Sim10",
+ "shots": 1024,
+ "circuits": [
+  "ctrl_ket00",
+  "test_ket01",
+  "test_ket10"
+ ],
+ "pred": {
+  "ctrl_ket00": {
+   "0": 1.0
+  },
+  "test_ket01": {
+   "0": 0.5,
+   "1": 0.5
+  },
+  "test_ket10": {
+   "0": 1.0
+  }
+ }
+}
