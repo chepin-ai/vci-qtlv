@@ -1,0 +1,27 @@
+{
+ "task_ids": [
+  "8E8D21202E1B871A",
+  "8E8D214002B246E4",
+  "8E8D215004AAA803"
+ ],
+ "chip": "ScQ-P5",
+ "shots": 1024,
+ "circuits": [
+  "ctrl_ket00",
+  "test_ket01",
+  "test_ket10"
+ ],
+ "denied": [
+  "Baiwang:UserError",
+  "ScQ-P18:UserError",
+  "Miaofeng:UserError",
+  "Dongling:UserError",
+  "Haituo:UserError",
+  "Baihua:UserError",
+  "Yunmeng:UserError",
+  "Xiang:UserError",
+  "ScQ-P102:UserError",
+  "ScQ-P21:UserError",
+  "ScQ-P3:UserError"
+ ]
+}

@@ -1,0 +1,69 @@
+{
+ "ts": "2026-09-26T17:04:02Z",
+ "backends": [
+  "ScQ-P10",
+  "ScQ-P18",
+  "Baiwang",
+  "ScQ-P102",
+  "ScQ-Sim10",
+  "Miaofeng",
+  "Dongling",
+  "Haituo",
+  "Baihua",
+  "Yunmeng",
+  "Xiang",
+  "ScQ-TEST",
+  "ScQ-P21",
+  "ScQ-Sim",
+  "ScQ-P3",
+  "ScQ-P5"
+ ],
+ "collect_sim": {
+  "ctrl_ket00": {
+   "status": "Completed",
+   "counts": {
+    "0": 1024
+   }
+  },
+  "test_ket01": {
+   "status": "Completed",
+   "counts": {
+    "0": 540,
+    "1": 484
+   }
+  },
+  "test_ket10": {
+   "status": "Completed",
+   "counts": {
+    "0": 1024
+   }
+  }
+ },
+ "submitted_hw": {
+  "task_ids": [
+   "8E8D21202E1B871A",
+   "8E8D214002B246E4",
+   "8E8D215004AAA803"
+  ],
+  "chip": "ScQ-P5",
+  "shots": 1024,
+  "circuits": [
+   "ctrl_ket00",
+   "test_ket01",
+   "test_ket10"
+  ],
+  "denied": [
+   "Baiwang:UserError",
+   "ScQ-P18:UserError",
+   "Miaofeng:UserError",
+   "Dongling:UserError",
+   "Haituo:UserError",
+   "Baihua:UserError",
+   "Yunmeng:UserError",
+   "Xiang:UserError",
+   "ScQ-P102:UserError",
+   "ScQ-P21:UserError",
+   "ScQ-P3:UserError"
+  ]
+ }
+}
