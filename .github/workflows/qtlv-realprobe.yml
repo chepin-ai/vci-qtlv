@@ -34,9 +34,43 @@ jobs:
                       out[nm] = {"status": r.task_status, "counts": dict(r.counts)}
                   except Exception as e:
                       out[nm] = {"err": type(e).__name__ + " " + str(e)[:150]}
-              R["collect"] = out
+              R["collect_sim"] = out
+              print("COLLECT_SIM", json.dumps(out)[:400])
+              # 真机相: 无 hw 件则提交 (单次零重试); 有则回收
+              if not os.path.exists("results/realprobe_task_hw.json"):
+                  EST, HI, LO = 2, 1, 0
+                  def build(init):
+                      qc = QuantumCircuit(3)
+                      if init == 1: qc.x(LO)
+                      elif init == 2: qc.x(HI)
+                      qc.h(EST); qc.toffoli(EST, LO, HI); qc.h(EST)
+                      qc.measure([EST])
+                      return qc
+                  SIM = ("Sim", "TEST")
+                  hw = [n for n in names if not any(s in n for s in SIM)]
+                  chip = "ScQ-P10" if "ScQ-P10" in hw else hw[0]
+                  t.config(backend=chip, shots=1024, compile=True)
+                  ids = []
+                  for i, qc in enumerate([build(0), build(1), build(2)]):
+                      r = t.send(qc, name=f"qtlv_t61hw_c{i}", group="qtlv_t61hw", wait=False)
+                      ids.append(r.taskid)
+                  meta2 = {"task_ids": ids, "chip": chip, "shots": 1024,
+                           "circuits": ["ctrl_ket00","test_ket01","test_ket10"]}
+                  json.dump(meta2, open("results/realprobe_task_hw.json","w"), ensure_ascii=False, indent=1)
+                  R["submitted_hw"] = meta2
+                  print("SUBMIT_HW", chip, ids)
+              else:
+                  meta2 = json.load(open("results/realprobe_task_hw.json"))
+                  out2 = {}
+                  for nm, tid in zip(meta2["circuits"], meta2["task_ids"]):
+                      try:
+                          r = t.retrieve(tid)
+                          out2[nm] = {"status": r.task_status, "counts": dict(r.counts)}
+                      except Exception as e:
+                          out2[nm] = {"err": type(e).__name__ + " " + str(e)[:150]}
+                  R["collect_hw"] = out2
+                  print("COLLECT_HW", json.dumps(out2)[:400])
               json.dump(R, open("results/realprobe_result.json","w"), ensure_ascii=False, indent=1)
-              print("COLLECT_PHASE", json.dumps(out)[:400])
           else:
               EST, HI, LO = 2, 1, 0
               def build(init):
