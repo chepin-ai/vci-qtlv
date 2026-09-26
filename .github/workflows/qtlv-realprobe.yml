@@ -46,19 +46,32 @@ jobs:
                       qc.h(EST); qc.toffoli(EST, LO, HI); qc.h(EST)
                       qc.measure([EST])
                       return qc
-                  SIM = ("Sim", "TEST")
-                  hw = [n for n in names if not any(s in n for s in SIM)]
-                  chip = "ScQ-P10" if "ScQ-P10" in hw else hw[0]
-                  t.config(backend=chip, shots=1024, compile=True)
-                  ids = []
-                  for i, qc in enumerate([build(0), build(1), build(2)]):
-                      r = t.send(qc, name=f"qtlv_t61hw_c{i}", group="qtlv_t61hw", wait=False)
-                      ids.append(r.taskid)
-                  meta2 = {"task_ids": ids, "chip": chip, "shots": 1024,
-                           "circuits": ["ctrl_ket00","test_ket01","test_ket10"]}
-                  json.dump(meta2, open("results/realprobe_task_hw.json","w"), ensure_ascii=False, indent=1)
-                  R["submitted_hw"] = meta2
-                  print("SUBMIT_HW", chip, ids)
+                  # P10 denied (no permission) -> 逐芯尝试直至一芯受理或全拒
+                  order = ["Baiwang","ScQ-P18","Miaofeng","Dongling","Haituo","Baihua",
+                           "Yunmeng","Xiang","ScQ-P102","ScQ-P21","ScQ-P3","ScQ-P5"]
+                  hw = [n for n in order if n in names]
+                  denied, chip, ids = [], None, []
+                  for c in hw:
+                      try:
+                          t.config(backend=c, shots=1024, compile=True)
+                          r0 = t.send(build(0), name="qtlv_t61hw_c0", group="qtlv_t61hw", wait=False)
+                          ids = [r0.taskid]; chip = c
+                          break
+                      except Exception as e:
+                          denied.append(c + ":" + type(e).__name__)
+                  if chip:
+                      for i in (1, 2):
+                          r = t.send(build(i), name=f"qtlv_t61hw_c{i}", group="qtlv_t61hw", wait=False)
+                          ids.append(r.taskid)
+                      meta2 = {"task_ids": ids, "chip": chip, "shots": 1024,
+                               "circuits": ["ctrl_ket00","test_ket01","test_ket10"], "denied": denied}
+                      json.dump(meta2, open("results/realprobe_task_hw.json","w"), ensure_ascii=False, indent=1)
+                      R["submitted_hw"] = meta2
+                      print("SUBMIT_HW", chip, ids)
+                  else:
+                      R["hw_denied_all"] = denied
+                      json.dump({"denied": denied}, open("results/realprobe_task_hw_denied.json","w"), ensure_ascii=False, indent=1)
+                      print("HW_DENIED_ALL", denied)
               else:
                   meta2 = json.load(open("results/realprobe_task_hw.json"))
                   out2 = {}
@@ -100,6 +113,7 @@ jobs:
               print("SUBMIT_PHASE", chip, ids)
           PYEOF
       - name: commit receipt
+        if: always()
         run: |
           git config user.email "qtlv-probe@ci.local"; git config user.name "qtlv-probe"
           git add results/ || true
