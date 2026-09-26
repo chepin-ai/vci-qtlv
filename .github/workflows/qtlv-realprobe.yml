@@ -1,0 +1,79 @@
+name: qtlv-realprobe
+# T61 真机实测 (QUAFU道): Z4 x3=CNOT 乘子门 1-bit QPE
+# 纪律: 单次提交零重试; 提交与回收分离 (事件驱动, 下拍dispatch回收)
+on:
+  workflow_dispatch:
+permissions: { contents: write }
+concurrency: { group: qtlv-realprobe, cancel-in-progress: false }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup
+        run: pip install --quiet pyquafu 2>&1 | tail -1
+      - name: submit-or-collect
+        env:
+          QUAFU: ${{ secrets.QUAFU_API_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, time
+          from quafu import QuantumCircuit, Task, User
+          R = {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+          k = os.environ["QUAFU"]
+          u = User(k)
+          be = u.get_available_backends()
+          names = list(be.keys())
+          R["backends"] = names
+          try: os.makedirs("results")
+          except: pass
+          if os.path.exists("results/realprobe_task.json"):
+              # collect phase (下拍dispatch)
+              tid = json.load(open("results/realprobe_task.json"))
+              t = Task(); t._account = u._account if hasattr(u,"_account") else None
+              try:
+                  from quafu import Task as T2
+                  t2 = T2(); t2.user = u
+                  res = t2.retrieve(tid["task_id"]) if hasattr(t2,"retrieve") else None
+                  R["collected"] = str(res)[:2000]
+              except Exception as e:
+                  R["collect_err"] = type(e).__name__ + " " + str(e)[:200]
+              json.dump(R, open("results/realprobe_result.json","w"), ensure_ascii=False, indent=1)
+              print("COLLECT_PHASE")
+          else:
+              # submit phase: 3 circuits, one task group, zero-retry
+              EST, HI, LO = 2, 1, 0
+              def build(data_init):
+                  qc = QuantumCircuit(3)
+                  if data_init == 1: qc.x(LO)
+                  elif data_init == 2: qc.x(HI)
+                  qc.h(EST); qc.toffoli(EST, LO, HI); qc.h(EST)
+                  qc.measure([EST])
+                  return qc
+              cirqs = [build(0), build(1), build(2)]
+              # choose backend: first available with >=3 qubits
+              chip = None
+              for n in names:
+                  info = be[n]
+                  qn = info.get("qubits", 0) if isinstance(info, dict) else 0
+                  if (qn or 0) >= 3: chip = n; break
+              if chip is None: chip = names[0]
+              R["chip"] = chip
+              t = Task()
+              t.config(backend=chip, shots=1024, compile=True)
+              ids = []
+              for qc in cirqs:
+                  r = t.send(qc, wait=False) if "wait" in t.send.__code__.co_varnames else t.send(qc)
+                  ids.append(getattr(r, "task_id", None) or getattr(r, "taskid", None) or str(r))
+              json.dump({"task_id": ids, "chip": chip, "shots": 1024, "circuits": ["ctrl_|00>","test_|1>","test_|2>"]},
+                        open("results/realprobe_task.json","w"), ensure_ascii=False, indent=1)
+              R["submitted"] = ids
+              json.dump(R, open("results/realprobe_submit.json","w"), ensure_ascii=False, indent=1)
+              print("SUBMIT_PHASE", chip, ids)
+          PYEOF
+      - name: commit receipt
+        run: |
+          git config user.email "qtlv-probe@ci.local"; git config user.name "qtlv-probe"
+          git add results/ || true
+          git commit -m "[skip ci] qtlv realprobe $(date -u +%Y%m%dT%H%M%SZ)" || echo NOCHANGE
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep 3; done; exit 1
