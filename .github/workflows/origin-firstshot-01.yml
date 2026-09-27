@@ -1,0 +1,103 @@
+name: origin-firstshot-01
+# ORIGINQC-FIRSTSHOT-01 枢/PIVOT-01代铸(合约 /mnt/agents/output/ORIGINQC-FIRSTSHOT-01-contract.md)
+# root点火权下放令「你自己有把握决定本源点火及schedule，全办」· 单次零重试律 · 禁submitTask/轮询/PQC/batch
+on:
+  workflow_dispatch:
+
+jobs:
+  firstshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ORIGINQC_KEY_1: ${{ secrets.ORIGINQC_KEY_1 }}
+    steps:
+      - name: Stage A key-free public probe
+        id: stageA
+        run: |
+          python3 << 'PYEOF'
+          import os,json,urllib.request,urllib.error
+          u='https://console.originqc.com.cn/api/taskApi/getFullConfig.json?chipId=72'
+          try:
+              with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=25) as r:
+                  sc,bd=r.status,r.read().decode('utf-8','ignore')
+          except urllib.error.HTTPError as e: sc,bd=e.code,e.read().decode('utf-8','ignore')[:400]
+          except Exception as e: sc,bd='ERR',str(e)
+          v='UNKNOWN'
+          if sc==200:
+              try:
+                  j=json.loads(bd);obj=j.get('obj') or {};cfg=j.get('config') or {}
+                  # 新旧schema兼容: obj.gateJSON(2026-08新) 或 config.adjJSON+gateJSON(旧)
+                  gate=obj.get('gateJSON') or cfg.get('gateJSON') or ''
+                  adj=obj.get('adjJSON') or cfg.get('adjJSON') or ''
+                  v='UP_PUBLIC' if (j.get('success') is True and (gate or adj)) else 'DOWN_OR_SCHEMA_CHANGE'
+              except Exception: v='NOT_JSON'
+          elif sc=='ERR': v='NETWORK_FAIL'
+          else: v=f'HTTP_{sc}'
+          print(f'STAGE_A_HTTP={sc}')
+          print(f'STAGE_A_VERDICT={v}')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f'verdict={v}\nhttp={sc}\n')
+          PYEOF
+      - name: Stage B single-shot estimate (no compute consumed)
+        id: stageB
+        run: |
+          python3 << 'PYEOF'
+          import os,json,urllib.request,urllib.error
+          key=os.environ.get('ORIGINQC_KEY_1','')
+          u='https://console.originqc.com.cn/oqcs/task/estimate.json'
+          body=json.dumps({"qubitNum":6,"shot":1,"qprogCount":1,"epoch":1}).encode()
+          req=urllib.request.Request(u,data=body,method='POST',headers={
+              'Content-Type':'application/json','User-Agent':'Mozilla/5.0',
+              'Authorization':f'oqcs_auth={key}'})
+          try:
+              with urllib.request.urlopen(req,timeout=30) as r: sc,bd=r.status,r.read().decode('utf-8','ignore')
+          except urllib.error.HTTPError as e: sc,bd=e.code,e.read().decode('utf-8','ignore')[:600]
+          except Exception as e: sc,bd='ERR',str(e)
+          msg=''
+          try: msg=str((json.loads(bd) or {}).get('message',''))
+          except Exception: msg=(bd or '')[:200]
+          low=msg.lower()
+          if sc=='ERR': v='NETWORK_FAIL'
+          elif sc in(401,403): v='AUTH_REJECTED'
+          elif 'api key' in low or 'apikey' in low or 'invalid' in low: v='AUTH_INVALID'
+          elif 'un-activate' in low or 'computing power' in low or '未激活' in msg or '算力' in msg: v='AUTH_OK_NO_QUOTA'
+          elif sc==200: v='AUTH_OK'
+          else: v=f'HTTP_{sc}'
+          print(f'STAGE_B_HTTP={sc}')
+          print(f'STAGE_B_VERDICT={v}')
+          print(f'STAGE_B_MSG_SNIP={msg[:120]}')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write(f'verdict={v}\nhttp={sc}\nmsg={msg[:120].replace(chr(10)," ")}\n')
+          PYEOF
+      - name: Receipt to tower (zero key values)
+        env:
+          GH: ${{ secrets.GITHUB_TOKEN }}
+          VA: ${{ steps.stageA.outputs.verdict }}
+          HA: ${{ steps.stageA.outputs.http }}
+          VB: ${{ steps.stageB.outputs.verdict }}
+          HB: ${{ steps.stageB.outputs.http }}
+          MB: ${{ steps.stageB.outputs.msg }}
+        run: |
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          cat > receipt.md << EOF
+          # ORIGINQC-FIRSTSHOT-01 本源首射回执
+          - ts: ${TS}
+          - run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - contract: ORIGINQC-FIRSTSHOT-01 (枢/PIVOT-01代铸, root点火权下放令执行)
+          ## Stage A (key-free public probe)
+          - http: ${HA}
+          - verdict: ${VA}
+          ## Stage B (single-shot estimate, qubitNum=6 shot=1, no compute)
+          - http: ${HB}
+          - verdict: ${VB}
+          - msg_snip: ${MB}
+          ## 律守
+          - 单次零重试: 本workflow仅dispatch一次, 无retry逻辑
+          - 零密钥值: 本回执不含任何key值, 仅判词
+          - 禁项守: 未触submitTask/轮询/PQC/batch
+          EOF
+          git config user.name 'vci-qtlv-bot'; git config user.email 'bot@vci-qtlv.local'
+          mkdir -p receipts/origin-firstshot
+          mv receipt.md receipts/origin-firstshot/${TS}.md
+          git add receipts/origin-firstshot/${TS}.md
+          git commit -m "receipt: ORIGINQC-FIRSTSHOT-01 ${TS} A=${VA} B=${VB}" -q
+          git push -q origin HEAD:main && echo "receipt pushed" || echo "receipt push failed(non-fatal)"
