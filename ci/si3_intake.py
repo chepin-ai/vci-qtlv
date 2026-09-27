@@ -45,7 +45,7 @@ def gh(repo, path, auth):
     return {"__ERR__": last}
 
 import time
-TS = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+TS = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 
 def main():
     root = os.environ.get("SI3_ROOT", ".")
