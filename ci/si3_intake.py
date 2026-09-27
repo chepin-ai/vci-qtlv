@@ -4,7 +4,8 @@
 # 产物: receipts/intake/INTAKE-<ts>.md + receipts/si3_intake_watermark.json 差分水位
 import json, os, re, sys, time, urllib.request, urllib.parse
 
-FINE = os.environ.get("FINE_PAT") or os.environ.get("QI_READ") or ""  # 钥亡不停车: FINE(亡0920)->QTLV_CI_READ_QI 降级链
+FINE = os.environ.get("FINE_PAT") or ""
+QI2 = os.environ.get("QI_READ") or ""  # 请求级降级链 (T62)
 UA = {"User-Agent": "qtlv-si3-intake"}
 TS = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
 
@@ -21,16 +22,27 @@ WATCH = [
 PRIO = re.compile(r"(DEMAND|TASK|KEY-INSTALL|RECEIPT|VOTE|RULING|VERDICT|CAST|FIELD|REQ-|CONSULT|ASK|ESCAL|ROOT)", re.I)
 
 def gh(repo, path, auth):
+    # 钥亡不停车·请求级降级: FINE 先试, 403/401 即换 QI_READ 复测 (T62 RCA 卡一)
     url = "https://api.github.com/repos/%s/contents/%s" % (repo, urllib.parse.quote(path))
-    h = dict(UA)
-    if auth and FINE:
-        h["Authorization"] = "token " + FINE
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=30) as f:
-            j = json.load(f)
-        return {x["name"]: x.get("sha", "")[:10] for x in j if x["type"] == "file"}
-    except Exception as e:
-        return {"__ERR__": str(e)[:80]}
+    creds = []
+    if auth:
+        if FINE: creds.append(FINE)
+        if QI2 and QI2 != FINE: creds.append(QI2)
+    else:
+        creds.append("")
+    last = "?"
+    for tok in creds:
+        h = dict(UA)
+        if tok: h["Authorization"] = "token " + tok
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=30) as f:
+                j = json.load(f)
+            return {x["name"]: x.get("sha", "")[:10] for x in j if x["type"] == "file"}
+        except Exception as e:
+            last = str(e)[:80]
+            if "403" in last or "401" in last: continue
+            break
+    return {"__ERR__": last}
 
 def main():
     root = os.environ.get("SI3_ROOT", ".")
