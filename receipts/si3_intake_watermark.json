@@ -404,7 +404,9 @@
   "vinf-sha16-firsttable-PROXY.md": "29c3f5b1ec",
   "vinf-sha16-firsttable-v1.json": "1b7a81ee56",
   "vinf-sha16-firsttable-v1.md": "5f4ac082b0",
-  "器课-REGISTRY-LVLU-01.md": "36f5fab48b"
+  "器课-REGISTRY-LVLU-01.md": "36f5fab48b",
+  "NOTE-24-NEGATION-CHAIN-WQZ4-01.md": "88f548e9af",
+  "qtlv-si5_ledger_0927b.md": "2e898a13d8"
  },
  "chepin-ai/ci-inbox/讨论室/threads": {
   "ADOPT-TRIGGER-PROTOCOL-01-qgl-20260917T1449Z.md": "4b915ed387",
@@ -1569,6 +1571,8 @@
   "hub-20260910T1541Z-to-cfts-pointers.md": "15198f9cf6",
   "hub-20260910T1912Z-to-ucif2-usrm232-beta-review.md": "add45b7c9c",
   "hub-20260910T1917Z-to-cfts-patrol-bug.md": "b4bec1375d",
-  "hub-20260910T2335Z-verdicts-dragon-n6-lgt-ratify-qfa-mech.md": "45fd35ee15"
+  "hub-20260910T2335Z-verdicts-dragon-n6-lgt-ratify-qfa-mech.md": "45fd35ee15",
+  "ORBIT-CAP-01-CLOSE-01-lvlu-20260927T2112Z.md": "25ed78b8fd",
+  "ORBIT-CAP-02-CLOSE-01-lvlu-20260927T2100Z.md": "7f98867eee"
  }
 }
