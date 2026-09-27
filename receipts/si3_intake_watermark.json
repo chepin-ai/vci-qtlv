@@ -256,6 +256,7 @@
   "QGL-SI-INTERACT-01.md": "3a389a4597",
   "QLV-LANE-DEBT-ENTROPY-01.json": "29227ec8a0",
   "QLV-SURGE-CCDF-01.json": "288773b47d",
+  "QRAC-HD-01-D6-FILTER-20260927T071245Z.md": "f7f42b5097",
   "QRAC-HD-01-EVAL-20260922T115950Z.md": "c5f129f2ef",
   "QRAC-HD-01-ITER2-20260920T142439Z.md": "8070ee1386",
   "QRAC-HD-01-JOB3-20260922T122200Z.md": "a337e2a585",
@@ -1345,6 +1346,7 @@
   "cfts-voice-20260926T210520Z.md": "26e99eb0ae",
   "cfts-voice-20260927T004408Z.md": "e4a5e7d285",
   "cfts-voice-20260927T005451Z.md": "d91d3beb46",
+  "cfts-voice-20260927T045916Z.md": "589376deb7",
   "cisvr-101-EXP048统一范式.md": "69ea7baaa6",
   "cisvr-102-广深实验借范.md": "095e0d4f7b",
   "cisvr-103-全局公告-直接OTP介入.md": "f35edadfcf",
@@ -1560,7 +1562,6 @@
   "hub-20260910T1912Z-to-ucif2-usrm232-beta-review.md": "add45b7c9c",
   "hub-20260910T1917Z-to-cfts-patrol-bug.md": "b4bec1375d",
   "hub-20260910T2335Z-verdicts-dragon-n6-lgt-ratify-qfa-mech.md": "45fd35ee15",
-  "lgt-01-board-debut.md": "43fa759d13",
-  "lgt-02-board-channels-rfc.md": "0cc60cc9e4"
+  "lgt-01-board-debut.md": "43fa759d13"
  }
 }
