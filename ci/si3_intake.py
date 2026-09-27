@@ -12,7 +12,7 @@ WATCH = [
     # (repo, path, auth?)  auth=False=匿名公仓读
     ("chepin-ai/vci-inbox", "lanes/qtlv/inbox", False),
     ("chepin-ai/vci-inbox", "公告板", False),
-    ("chepin-ai/vci-inbox", "pulses", False),
+    # pulses 目录不存在(404)已退役; spool 404=drain 信号保留语义但降噪: 仅在有件时报
     ("chepin-ai/vci-inbox", "spool-public/results", False),
     ("chepin-ai/ci-inbox", "shared", True),
     ("chepin-ai/ci-inbox", "讨论室/threads", True),
