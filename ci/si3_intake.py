@@ -44,19 +44,27 @@ def gh(repo, path, auth):
             break
     return {"__ERR__": last}
 
+import time
+TS = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
 def main():
     root = os.environ.get("SI3_ROOT", ".")
     wm_path = os.path.join(root, "receipts/si3_intake_watermark.json")
+    prio_path = os.path.join(root, "receipts/prio_open.json")
     os.makedirs(os.path.join(root, "receipts/intake"), exist_ok=True)
     wm = {}
     if os.path.exists(wm_path):
         wm = json.load(open(wm_path))
+    prio_open = {}
+    if os.path.exists(prio_path):
+        prio_open = json.load(open(prio_path))
     new_wm, report, prio = {}, [], []
     for repo, path, auth in WATCH:
         key = repo + "/" + path
         cur = gh(repo, path, auth)
         new_wm[key] = cur
         if "__ERR__" in cur:
+            new_wm[key] = wm.get(key, cur)  # 读失败保旧水位, 防回退
             report.append("- `%s`: READ-ERR %s" % (key, cur["__ERR__"]))
             continue
         old = wm.get(key, {})
@@ -70,11 +78,29 @@ def main():
                 report.append("    - [%s] %s%s" % (mark, n, tag))
                 if PRIO.search(n):
                     prio.append({"where": key, "file": n, "mark": mark})
+                    pid = key + "::" + n
+                    ent = prio_open.get(pid, {"first_seen": TS, "hits": 0})
+                    ent["last_seen"] = TS; ent["hits"] = ent.get("hits", 0) + 1
+                    prio_open[pid] = ent
         else:
             report.append("- `%s`: 无差分" % key)
-    body = ["CLASSIFY: L0(qtlv SI3-LOOP intake 机层摘要·席判位空挂SI1)", "",
+    # PRIO 滚动台账: ANS 闭环检测 (同道 ANS-<stem> 出现) + 陈情滚动
+    lane_cur = new_wm.get("chepin-ai/vci-inbox/lanes/qtlv/inbox", {})
+    closed = []
+    for pid in list(prio_open):
+        stem = pid.split("::", 1)[1]
+        base = stem.rsplit(".", 1)[0]
+        if any(x.startswith("ANS-" + base[:40]) or ("ANS-" in x and base[:30] in x) for x in lane_cur):
+            closed.append(pid); del prio_open[pid]
+        elif prio_open[pid].get("hits", 0) > 20:
+            del prio_open[pid]  # 陈情20拍后归档, 防胀
+    open_lines = ["    - [OPEN-PRIO] %s ← %s (首见 %s, 旗标×%d)" % (
+        p["file"], p["where"], p.get("first_seen", "?")[:15], p.get("hits", 1))
+        for p in sorted(prio_open.values(), key=lambda e: e.get("first_seen", ""))[:15]]
+    body = (["CLASSIFY: L0(qtlv SI3-LOOP intake 机层摘要·席判位空挂SI1)", "",
+            "## 未闭环 PRIO 滚动台账 (拍首必读律·机层提醒)"] + (open_lines or ["    - 无"]) + ["",
             "# INTAKE-%s ｜ qtlv si3_intake v1.0" % TS, "",
-            "## 差分（水位自上拍）"] + report + ["", "## 优先件（应答矩阵分流位）"]
+            "## 差分（水位自上拍）"] + report + ["", "## 优先件（应答矩阵分流位）"])
     if prio:
         body += ["- `%s` ← %s [%s]" % (p["file"], p["where"], p["mark"]) for p in prio]
     else:
@@ -82,7 +108,19 @@ def main():
     body += ["", "—— qtlv SI3-LOOP 机层（纯事件驱动·零私域额度） #noauto"]
     out = os.path.join(root, "receipts/intake/INTAKE-%s.md" % TS)
     open(out, "w").write("\n".join(body))
+    # union-merge 写水位: 迟到run不得以旧视图回退新水位 (T64 RCA-D10 修)
+    try:
+        disk = json.load(open(wm_path))
+        for k, v in disk.items():
+            if k in new_wm and isinstance(v, dict) and isinstance(new_wm[k], dict):
+                merged = dict(v); merged.update(new_wm[k])  # 现测sha优先, 旧条目并集保留
+                new_wm[k] = merged
+            elif k not in new_wm:
+                new_wm[k] = v
+    except Exception:
+        pass
     json.dump(new_wm, open(wm_path, "w"), ensure_ascii=False, indent=1)
+    json.dump(prio_open, open(prio_path, "w"), ensure_ascii=False, indent=1)
     print("INTAKE_OK", out, "prio=", len(prio))
 
 if __name__ == "__main__":
