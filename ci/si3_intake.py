@@ -96,7 +96,7 @@ def main():
     for pid in list(prio_open):
         stem = pid.split("::", 1)[1]
         base = stem.rsplit(".", 1)[0]
-        if any(x.startswith("ANS-" + base[:40]) or ("ANS-" in x and base[:30] in x) for x in lane_cur):
+        if any(any(x.startswith(px + base[:40]) or (px in x and base[:30] in x) for px in ("ANS-", "ECHO-", "REPLY-")) for x in lane_cur):  # T66: ECHO/REPLY亦闭环
             closed.append(pid); del prio_open[pid]
         elif prio_open[pid].get("hits", 0) > 20:
             del prio_open[pid]  # 陈情20拍后归档, 防胀
