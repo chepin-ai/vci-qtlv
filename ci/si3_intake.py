@@ -20,6 +20,7 @@ WATCH = [
     ("chepin-ai/ci-inbox", "公告板", True),
 ]
 PRIO = re.compile(r"(DEMAND|TASK|KEY-INSTALL|RECEIPT|VOTE|RULING|VERDICT|CAST|FIELD|REQ-|CONSULT|ASK|ESCAL|ROOT)", re.I)
+NOPRIO = re.compile(r"^ECHO-ANS-", re.I)  # T68: 闭环指针件不入PRIO(自身即闭环标记)
 
 def gh(repo, path, auth):
     # 钥亡不停车·请求级降级: FINE 先试, 403/401 即换 QI_READ 复测 (T62 RCA 卡一)
@@ -74,9 +75,10 @@ def main():
             report.append("- `%s`: +%d new, ~%d changed" % (key, len(new_files), len(chg_files)))
             for n in new_files + chg_files:
                 mark = "NEW" if n in new_files else "CHG"
-                tag = " **PRIO**" if PRIO.search(n) else ""
+                is_prio = bool(PRIO.search(n)) and not NOPRIO.search(n)
+                tag = " **PRIO**" if is_prio else ""
                 report.append("    - [%s] %s%s" % (mark, n, tag))
-                if PRIO.search(n):
+                if is_prio:
                     prio.append({"where": key, "file": n, "mark": mark})
                     pid = key + "::" + n
                     ent = prio_open.get(pid, {"first_seen": TS, "hits": 0})
