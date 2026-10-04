@@ -1,0 +1,74 @@
+name: qtlv-d8-fingerprint
+# T67 D13/D11: d=8乘子三门(×3/×5/×7 mod8)置换指纹压测 — ScQ-Sim10云仿 单次零重试
+# 合成(NOTE-28, numpy精验0误差): x3=T(0,1->2)CN(1->2)CN(0->1); x5=CN(0->2); x7=X0X1X2 T(0,1->2) CN(0->1) X0
+# 自校准设计: 8条裸X-prep校准电路定counts键端序, 24条指纹电路判 ak mod8
+# 判据(预注册): 每条主结果占比≥99%且值==(a*k)%8(端序映射由校准电路定) 
+on:
+  workflow_dispatch:
+permissions: { contents: write }
+concurrency: { group: qtlv-d8-fingerprint, cancel-in-progress: false }
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup
+        run: pip install --quiet pyquafu 2>&1 | tail -1
+      - name: run-and-collect
+        env:
+          QUAFU: ${{ secrets.QUAFU_API_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, time
+          from quafu import QuantumCircuit, Task, User
+          os.makedirs("results", exist_ok=True)
+          R={"ts":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"beat":"T67"}
+          u=User(os.environ["QUAFU"]); t=Task(u)
+          names=list(t._available_backends.keys())
+          chip="ScQ-Sim10" if "ScQ-Sim10" in names else ("ScQ-Sim" if "ScQ-Sim" in names else None)
+          R["chip"]=chip
+          if chip is None: R["err"]="no sim"; json.dump(R,open("results/d8_fp_result.json","w")); raise SystemExit(1)
+          t.config(backend=chip, shots=1024, compile=True)
+          SYN={3:[("T",[0,1,2]),("CN",[1,2]),("CN",[0,1])],
+               5:[("CN",[0,2])],
+               7:[("X",[0]),("X",[1]),("X",[2]),("T",[0,1,2]),("CN",[0,1]),("X",[0])]}
+          def apply(qc,g):
+              for kind,qs in g:
+                  if kind=="X": qc.x(qs[0])
+                  elif kind=="CN": qc.cnot(qs[0],qs[1])
+                  else: qc.toffoli(qs[0],qs[1],qs[2])
+          def build(k,gates):
+              qc=QuantumCircuit(3)
+              for i in range(3):
+                  if (k>>i)&1: qc.x(i)
+              if gates: apply(qc,gates)
+              qc.measure([0,1,2]); return qc
+          jobs={}
+          for k in range(8): jobs[f"cal_k{k}"]=(k,None)
+          for a in (3,5,7):
+              for k in range(8): jobs[f"fp_a{a}_k{k}"]=(k,SYN[a])
+          ids={}
+          for nm,(k,g) in jobs.items():
+              r=t.send(build(k,g), name="qtlv_t67_"+nm, group="qtlv_t67d8", wait=False)
+              ids[nm]=r.taskid
+          R["task_ids"]=ids; R["n_jobs"]=len(ids)
+          out={}; deadline=time.time()+540
+          while time.time()<deadline and len(out)<len(ids):
+              for nm,tid in ids.items():
+                  if nm in out: continue
+                  try:
+                      r=t.retrieve(tid)
+                      if r.task_status=="Completed": out[nm]={"counts":dict(r.counts)}
+                  except Exception: pass
+              if len(out)<len(ids): time.sleep(10)
+          R["collect"]=out; R["done"]=len(out)
+          print("DONE", len(out), "/", len(ids))
+          json.dump(R,open("results/d8_fp_result.json","w"),indent=1)
+          PYEOF
+      - name: commit
+        if: always()
+        run: |
+          git config user.name "qtlv-bot"; git config user.email "qtlv-bot@local"
+          git add results/d8_fp_result.json
+          git commit -m "[skip ci] T67 d8 fingerprint result" || echo "nothing"
+          git pull --rebase && git push || (git pull --rebase && git push)
