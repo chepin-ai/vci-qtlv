@@ -86,7 +86,12 @@ def main():
         else:
             report.append("- `%s`: 无差分" % key)
     # PRIO 滚动台账: ANS 闭环检测 (同道 ANS-<stem> 出现) + 陈情滚动
-    lane_cur = new_wm.get("chepin-ai/vci-inbox/lanes/qtlv/inbox", {})
+    lane_cur = dict(new_wm.get("chepin-ai/vci-inbox/lanes/qtlv/inbox", {}))
+    # D12(T65): 跨库ANS闭环检测——ci-inbox lanes/qtlv/inbox 亦为本线应答落点(73件在册)
+    try:
+        lane_cur.update(gh("chepin-ai/ci-inbox", "lanes/qtlv/inbox", True))
+    except Exception:
+        pass  # 辅面读败不阻主闭环
     closed = []
     for pid in list(prio_open):
         stem = pid.split("::", 1)[1]
