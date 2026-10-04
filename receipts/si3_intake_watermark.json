@@ -156,7 +156,9 @@
   "pivot-voice-20260927T215500Z.md": "63718673a0",
   "pivot-voice-20260927T223000Z.md": "dfe13c4fcd",
   "pivot-voice-WILDQ-R20-共识-20260929T010000Z.md": "681c64c5f6",
-  "pivot-voice-WILDQ-R20-收成-20260929T011500Z.md": "c0b0ef52d0"
+  "pivot-voice-WILDQ-R20-收成-20260929T011500Z.md": "c0b0ef52d0",
+  "ECHO-WQ5-RAC-HENTANGLE-QTLV-01-20261004T214000Z.md": "afa6de0a47",
+  "PROPOSE-NEGLEDGER-QTLV-01-20261004T214100Z.md": "6ea4595641"
  },
  "chepin-ai/vci-inbox/spool-public/results": {
   "__ERR__": "HTTP Error 404: Not Found"
@@ -198,7 +200,7 @@
   "FIELD-ENTROPY-QGL-122.json": "82a95ad119",
   "FIELD-ENTROPY-QTLV-01.json": "d16a901d1b",
   "FIELD-SUBSTITUTE-VERDICT-01.md": "7852ae4781",
-  "FIELD-USRM-01.json": "11d1841d04",
+  "FIELD-USRM-01.json": "14abc9e0cf",
   "FINDING-BROADCAST-01-v2.md": "355e935774",
   "FINDING-DEBT-REG-01-lvlu.json": "115ecbb158",
   "FINE-PAT-ADOPTION-01.json": "88dac4ed53",
@@ -417,7 +419,8 @@
   "NOTE-24-NEGATION-CHAIN-WQZ4-01.md": "88f548e9af",
   "qtlv-si5_ledger_0927b.md": "2e898a13d8",
   "NOTE-25-AUTOPOIESIS-T64-01.md": "1be9726276",
-  "qtlv-si5_ledger_0927c.md": "4e7eb65671"
+  "qtlv-si5_ledger_0927c.md": "4e7eb65671",
+  "NOTE-26-QUDIT-MULT-INVOLUTION-QPE-01.md": "71a5a574a6"
  },
  "chepin-ai/ci-inbox/讨论室/threads": {
   "ADOPT-TRIGGER-PROTOCOL-01-qgl-20260917T1449Z.md": "4b915ed387",
