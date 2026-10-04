@@ -31,7 +31,7 @@ jobs:
           t.config(backend=chip, shots=1024, compile=True)
           def build(eraser):
               qc = QuantumCircuit(2)
-              qc.h(0); qc.cnot(0,1); qc.h(1)   # Phi- + screen H on q1
+              qc.h(0); qc.z(0); qc.cnot(0,1); qc.h(1)   # Phi- (Z修号,T66首跑失校Phi+已录) + screen H
               if eraser: qc.h(0)                # eraser: q0 测X基 (alpha=45°)
               qc.measure([0,1])
               return qc
