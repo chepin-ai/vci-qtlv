@@ -1,0 +1,27 @@
+{
+ "ts": "2026-10-04T21:35:38Z",
+ "beat": "T66",
+ "chip": "ScQ-Sim10",
+ "task_ids": {
+  "A_whichway": "8F39DAC01AE94845",
+  "B_eraser": "8F39DAE00D8C98E4"
+ },
+ "collect": {
+  "A_whichway": {
+   "status": "Completed",
+   "counts": {
+    "00": 275,
+    "01": 280,
+    "10": 217,
+    "11": 252
+   }
+  },
+  "B_eraser": {
+   "status": "Completed",
+   "counts": {
+    "00": 506,
+    "11": 518
+   }
+  }
+ }
+}
