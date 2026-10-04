@@ -81,6 +81,7 @@ def main():
                     pid = key + "::" + n
                     ent = prio_open.get(pid, {"first_seen": TS, "hits": 0})
                     ent["last_seen"] = TS; ent["hits"] = ent.get("hits", 0) + 1
+                    ent["file"] = n; ent["where"] = key  # T65-RCA: 台账条目须自带坐标, 否则渲染KeyError
                     prio_open[pid] = ent
         else:
             report.append("- `%s`: 无差分" % key)
@@ -95,7 +96,7 @@ def main():
         elif prio_open[pid].get("hits", 0) > 20:
             del prio_open[pid]  # 陈情20拍后归档, 防胀
     open_lines = ["    - [OPEN-PRIO] %s ← %s (首见 %s, 旗标×%d)" % (
-        p["file"], p["where"], p.get("first_seen", "?")[:15], p.get("hits", 1))
+        p.get("file", pid.split("::",1)[-1]), p.get("where", "?"), p.get("first_seen", "?")[:15], p.get("hits", 1))
         for p in sorted(prio_open.values(), key=lambda e: e.get("first_seen", ""))[:15]]
     body = (["CLASSIFY: L0(qtlv SI3-LOOP intake 机层摘要·席判位空挂SI1)", "",
             "## 未闭环 PRIO 滚动台账 (拍首必读律·机层提醒)"] + (open_lines or ["    - 无"]) + ["",
