@@ -96,7 +96,9 @@ def main():
     for pid in list(prio_open):
         stem = pid.split("::", 1)[1]
         base = stem.rsplit(".", 1)[0]
-        if any(any(x.startswith(px + base[:40]) or (px in x and base[:30] in x) for px in ("ANS-", "ECHO-", "REPLY-")) for x in lane_cur):  # T66: ECHO/REPLY亦闭环
+        # T67: 检测面=vci/ci我线inbox ∪ vci公告板(本线板面应答); 自匹配守卫 x!=stem
+        scan = dict(lane_cur); scan.update(new_wm.get("chepin-ai/vci-inbox/公告板", {}))
+        if any(x != stem and any(x.startswith(px + base[:40]) or (px in x and base[:30] in x) for px in ("ANS-", "ECHO-", "REPLY-")) for x in scan):
             closed.append(pid); del prio_open[pid]
         elif prio_open[pid].get("hits", 0) > 20:
             del prio_open[pid]  # 陈情20拍后归档, 防胀
