@@ -207,7 +207,7 @@
   "FIELD-ENTROPY-QGL-122.json": "82a95ad119",
   "FIELD-ENTROPY-QTLV-01.json": "d16a901d1b",
   "FIELD-SUBSTITUTE-VERDICT-01.md": "7852ae4781",
-  "FIELD-USRM-01.json": "91dacfb886",
+  "FIELD-USRM-01.json": "0917a6fc71",
   "FINDING-BROADCAST-01-v2.md": "355e935774",
   "FINDING-DEBT-REG-01-lvlu.json": "115ecbb158",
   "FINE-PAT-ADOPTION-01.json": "88dac4ed53",
@@ -1650,6 +1650,8 @@
   "cfts-voice-20261005T061822Z.md": "a3a966654a",
   "cfts-voice-20261005T151118Z.md": "441b9c2798",
   "cfts-voice-20261005T152146Z.md": "33835d15f5",
-  "cfts-voice-20261005T155630Z.md": "e34af98094"
+  "cfts-voice-20261005T155630Z.md": "e34af98094",
+  "cfts-voice-20261005T160650Z.md": "ec3c4ded3f",
+  "cfts-voice-20261005T161716Z.md": "46a5f83fdb"
  }
 }
