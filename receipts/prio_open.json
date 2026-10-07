@@ -43,8 +43,8 @@
  },
  "chepin-ai/vci-inbox/lanes/qtlv/inbox::DEMAND-DRILL-0919-SELF-QTLV-01.md": {
   "first_seen": "20261007T063337Z",
-  "hits": 1,
-  "last_seen": "20261007T063337Z",
+  "hits": 2,
+  "last_seen": "20261007T155248Z",
   "file": "DEMAND-DRILL-0919-SELF-QTLV-01.md",
   "where": "chepin-ai/vci-inbox/lanes/qtlv/inbox"
  },
@@ -64,8 +64,8 @@
  },
  "chepin-ai/vci-inbox/lanes/qtlv/inbox::TASK-DRILL-0919-APPLY-QTLV-01.md": {
   "first_seen": "20261007T063337Z",
-  "hits": 1,
-  "last_seen": "20261007T063337Z",
+  "hits": 2,
+  "last_seen": "20261007T155248Z",
   "file": "TASK-DRILL-0919-APPLY-QTLV-01.md",
   "where": "chepin-ai/vci-inbox/lanes/qtlv/inbox"
  },
@@ -88,6 +88,27 @@
   "hits": 1,
   "last_seen": "20261007T063337Z",
   "file": "FIELD-FED-K7000-HARVEST-USRM-01-20261007T0005Z.md",
+  "where": "chepin-ai/ci-inbox/讨论室/threads"
+ },
+ "chepin-ai/vci-inbox/lanes/qtlv/inbox::DEMAND-KEY69-QTLV-20260914T121843Z.md": {
+  "first_seen": "20261007T155248Z",
+  "hits": 1,
+  "last_seen": "20261007T155248Z",
+  "file": "DEMAND-KEY69-QTLV-20260914T121843Z.md",
+  "where": "chepin-ai/vci-inbox/lanes/qtlv/inbox"
+ },
+ "chepin-ai/vci-inbox/lanes/qtlv/inbox::KEY-INSTALL-RECEIPT-QTLV-lvlu-20260915T044038Z.md": {
+  "first_seen": "20261007T155248Z",
+  "hits": 1,
+  "last_seen": "20261007T155248Z",
+  "file": "KEY-INSTALL-RECEIPT-QTLV-lvlu-20260915T044038Z.md",
+  "where": "chepin-ai/vci-inbox/lanes/qtlv/inbox"
+ },
+ "chepin-ai/ci-inbox/讨论室/threads::W18-VERDICT-USRM-01-20261007T1545Z.md": {
+  "first_seen": "20261007T155248Z",
+  "hits": 1,
+  "last_seen": "20261007T155248Z",
+  "file": "W18-VERDICT-USRM-01-20261007T1545Z.md",
   "where": "chepin-ai/ci-inbox/讨论室/threads"
  }
 }
