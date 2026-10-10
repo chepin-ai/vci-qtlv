@@ -110,5 +110,12 @@
   "last_seen": "20261009T132516Z",
   "file": "TENSOR-FIELD-01.json",
   "where": "chepin-ai/ci-inbox/shared"
+ },
+ "chepin-ai/ci-inbox/shared::FIELD-USRM-01.json": {
+  "first_seen": "20261010T090556Z",
+  "hits": 1,
+  "last_seen": "20261010T090556Z",
+  "file": "FIELD-USRM-01.json",
+  "where": "chepin-ai/ci-inbox/shared"
  }
 }
