@@ -1,11 +1,4 @@
 {
- "chepin-ai/ci-inbox/shared::FIELD-USRM-01.json": {
-  "first_seen": "20261004T211205Z",
-  "hits": 20,
-  "last_seen": "20261010T065251Z",
-  "file": "FIELD-USRM-01.json",
-  "where": "chepin-ai/ci-inbox/shared"
- },
  "chepin-ai/ci-inbox/讨论室/threads::FIELD-FED-K6000-HARVEST-USRM-01-20261002T2045Z.md": {
   "first_seen": "20261004T211205Z",
   "hits": 1,
