@@ -1,0 +1,11 @@
+{
+ "v": "LINE-DRIVE-01",
+ "ts": "2026-10-10T10:00:30Z",
+ "line": "qtlv",
+ "repos": [
+  "qtlv-quantum-encoder",
+  "chepin-qi/qtlv-pub"
+ ],
+ "events": [],
+ "acked": []
+}
