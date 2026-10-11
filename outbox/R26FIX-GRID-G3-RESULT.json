@@ -1,0 +1,12 @@
+{
+  "rev_hash": "815bbf137d2cbfc6c48fbfdc61a8a6a2b13ef14a",
+  "run_mode": "cold",
+  "toolchain_version": "leanprover/lean4:v4.35.0-rc2",
+  "env_hash": "2a7884121d11fae3c53f90ebd26d94515f83f624858fe1f5f3891871c2c77bec",
+  "build_exit_code": 0,
+  "artifact_hash": "790283cd718052881559a58195e7c3ba96a33ab5ce8bba9b58b20673d1e695b9",
+  "verdict": "PASS",
+  "paired_run_id": "R26FIX-GRID-G3-EXT05-20261011",
+  "compile_wall_seconds": 155,
+  "note": "runner: PIVOT-01 sandbox 2c/4G; mathlib cache via vci-cache-relay CI relay (cache.mathlib.org 本沙箱限流 ~11KB/s); standalone lake env lean 全量重编译"
+}
