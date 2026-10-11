@@ -1,0 +1,12 @@
+{
+  "rev_hash": "9fe29c4b379922f49446b28b76cbe4fce041c8b3",
+  "run_mode": "hot",
+  "toolchain_version": "leanprover/lean4:v4.35.0-rc2",
+  "env_hash": "d292d372b598c511affb83ef04ff08d179083bdad306829d37957b5a6524511f",
+  "build_exit_code": null,
+  "artifact_hash": "790283cd718052881559a58195e7c3ba96a33ab5ce8bba9b58b20673d1e695b9",
+  "verdict": "COLD_FALLTHROUGH_BLOCKED",
+  "paired_run_id": "R26FIX-GRID-G6-EXT05-20261011",
+  "compile_wall_seconds": null,
+  "note": "fallthrough_rule 触发：mathlib@9fe29c4b 官方 cache 缺 4157/8936（4779 可得，4157 个 ltar 在 cache.mathlib.org 404，与 manifest 预言 0/4157 互证）；mathlib 源码构建在本沙箱（2c/4G）不可行，实证 pin 无完整 cache，按规则格保持 hot 标 + cold-fallthrough 备注，未执行编译"
+}
