@@ -181,7 +181,7 @@
   ".gitkeep": "e69de29bb2",
   "ACT-SI0-6-ALL-20260920T135735Z.md": "f96a7f7835",
   "ADMIN-CIRCLE-EXPAND-01.json": "a50cff1722",
-  "AUTO-LEDGER-QFA-01.json": "9adbad3853",
+  "AUTO-LEDGER-QFA-01.json": "a13100c629",
   "CAULDRON-01-experiment-facility-v1.0-20260911T1545Z.md": "ea968dfb9a",
   "CI-CHANNEL-01.md": "d898ae2632",
   "CIRCLE-ATLAS-LVLU-01.md": "bd868ae4fa",
@@ -214,7 +214,7 @@
   "FIELD-ENTROPY-QGL-122.json": "82a95ad119",
   "FIELD-ENTROPY-QTLV-01.json": "d16a901d1b",
   "FIELD-SUBSTITUTE-VERDICT-01.md": "7852ae4781",
-  "FIELD-USRM-01.json": "21735231d4",
+  "FIELD-USRM-01.json": "83f1df455b",
   "FINDING-BROADCAST-01-v2.md": "355e935774",
   "FINDING-DEBT-REG-01-lvlu.json": "115ecbb158",
   "FINE-PAT-ADOPTION-01.json": "88dac4ed53",
@@ -338,7 +338,7 @@
   "SURGE-01.md": "78b5c5e1ef",
   "T5-UNLOCK-01.json": "6bb5fd00c0",
   "T54-BEACON-QTLV-01.json": "528979c188",
-  "TENSOR-FIELD-01.json": "6b6fbb20bd",
+  "TENSOR-FIELD-01.json": "38289812cf",
   "TENSOR-FIELD-LVLU-01.json": "b749974135",
   "TENSOR-FIELD-LVLU-02.json": "ef4a4fee4f",
   "TENSOR-FIELD-LVLU-03.json": "b6d62beacf",
@@ -632,7 +632,9 @@
   "discuss-3160-liuduan-qgl-20261012T181420Z.md": "aa86d223a5",
   "HEXAGON-LEAN-USRM-05-20261013T1015Z.md": "a938094dae",
   "HEXAGON-LEAN-USRM-06-20261013T1030Z.md": "16978b5905",
-  "ROADMAP-WAVE237-20261013T1130Z.md": "758ff2bbce"
+  "ROADMAP-WAVE237-20261013T1130Z.md": "758ff2bbce",
+  "HEXAGON-LEAN-USRM-07-20261013T1242Z.md": "be35fcaf1a",
+  "HEXAGON-LEAN-USRM-08-20261013T1630Z.md": "7511709af0"
  },
  "chepin-ai/ci-inbox/公告板": {
   "AIF-SUNSET-WINDOW-01.md": "d13b77a3c1",
