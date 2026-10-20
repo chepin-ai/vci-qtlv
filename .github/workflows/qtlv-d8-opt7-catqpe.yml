@@ -1,0 +1,89 @@
+name: qtlv-d8-opt7-catqpe
+# T71 D21+D11: (A) 最优×7(C12,C01,T2 零X,穷举证讫)指纹云复验 vs T67六门版
+# (B) 猫态见证仪器首上云: 单比特QPE+受控乘子(C-×3: 5T+1w Barenco; C-×5: 1T直控)
+# 判据(预注册): (A) fp_a7o_k: 主峰==(7k)%8 且≥99%; (B) 校准cal_c定位c位;
+#   qpe_x3_sym: P(c=1)≤3%; qpe_x3_anti: ≥97%; qpe_x3_ket001: 0.5±0.06; qpe_x3_ket000: ≤3%;
+#   qpe_x5_sym: ≤3%; qpe_x5_ket001: 0.5±0.06。单次零重试。
+on:
+  workflow_dispatch:
+permissions: { contents: write }
+concurrency: { group: qtlv-d8-opt7-catqpe, cancel-in-progress: false }
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup
+        run: pip install --quiet pyquafu 2>&1 | tail -1
+      - name: run-and-collect
+        env:
+          QUAFU: ${{ secrets.QUAFU_API_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, time
+          from quafu import QuantumCircuit, Task, User
+          os.makedirs("results", exist_ok=True)
+          R={"ts":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"beat":"T71"}
+          u=User(os.environ["QUAFU"]); t=Task(u)
+          names=list(t._available_backends.keys())
+          chip="ScQ-Sim10" if "ScQ-Sim10" in names else ("ScQ-Sim" if "ScQ-Sim" in names else None)
+          R["chip"]=chip
+          if chip is None: R["err"]="no sim"; json.dump(R,open("results/d8_opt7_catqpe.json","w")); raise SystemExit(1)
+          t.config(backend=chip, shots=1024, compile=True)
+          # qubit map: data q0,q1,q2 (b0,b1,b2); c=q3; ancilla w=q4
+          def prep_k(qc,k):
+              for i in range(3):
+                  if (k>>i)&1: qc.x(i)
+          OPT7=[("CN",[1,2]),("CN",[0,1]),("T",[0,1,2])]  # T70穷举最优(零X)
+          LEG7=[("X",[0]),("X",[1]),("X",[2]),("T",[0,1,2]),("CN",[0,1]),("X",[0])]  # T67六门版
+          def apply(qc,g):
+              for kind,qs in g:
+                  if kind=="X": qc.x(qs[0])
+                  elif kind=="Z": qc.z(qs[0])
+                  elif kind=="H": qc.h(qs[0])
+                  elif kind=="CN": qc.cnot(qs[0],qs[1])
+                  else: qc.toffoli(qs[0],qs[1],qs[2])
+          CX3=[("T",[3,0,1]),("T",[3,1,2]),("T",[0,1,4]),("T",[4,3,2]),("T",[0,1,4])]  # 5T+1w
+          CX5=[("T",[3,0,2])]                                                            # 1T
+          def fp3(k,gates):
+              qc=QuantumCircuit(3); prep_k(qc,k); apply(qc,gates); qc.measure([0,1,2]); return qc
+          def qpe5(prep,cu):
+              qc=QuantumCircuit(5); apply(qc,prep)
+              qc.h(3); apply(qc,cu); qc.h(3)
+              qc.measure([0,1,2,3,4]); return qc
+          jobs={}
+          for k in range(8):
+              jobs[f"fp_a7o_k{k}"]=fp3(k,OPT7)
+              jobs[f"fp_a7l_k{k}"]=fp3(k,LEG7)
+          jobs["cal_c"]=qpe5([("X",[3])],[])                                  # c位校准: 峰应在c=1
+          jobs["qpe_x3_sym"]=qpe5([("X",[0]),("H",[1])],CX3)                  # (|001>+|011>)/√2 对称猫: P(c1)=0
+          jobs["qpe_x3_anti"]=qpe5([("X",[0]),("H",[1]),("Z",[1])],CX3)       # 反对称猫: P(c1)=1
+          jobs["qpe_x3_ket001"]=qpe5([("X",[0])],CX3)                         # 2环基态: 0.5
+          jobs["qpe_x3_ket000"]=qpe5([],CX3)                                  # 不动点: 0
+          jobs["qpe_x5_sym"]=qpe5([("X",[0]),("H",[2])],CX5)                  # (|001>+|101>)/√2: 0
+          jobs["qpe_x5_ket001"]=qpe5([("X",[0])],CX5)                         # 0.5
+          ids={}
+          for nm,qc in jobs.items():
+              r=t.send(qc, name="qtlv_t71_"+nm, group="qtlv_t71d8", wait=False)
+              ids[nm]=r.taskid
+          R["task_ids"]=ids; R["n_jobs"]=len(ids)
+          out={}; deadline=time.time()+540
+          while time.time()<deadline and len(out)<len(ids):
+              for nm,tid in ids.items():
+                  if nm in out: continue
+                  try:
+                      r=t.retrieve(tid)
+                      if r.task_status=="Completed": out[nm]={"counts":dict(r.counts)}
+                  except Exception: pass
+              if len(out)<len(ids): time.sleep(10)
+          R["collect"]=out; R["done"]=len(out)
+          print("DONE", len(out), "/", len(ids))
+          json.dump(R,open("results/d8_opt7_catqpe.json","w"),indent=1)
+          PYEOF
+      - name: commit
+        if: always()
+        run: |
+          git config user.name "qtlv-bot"; git config user.email "qtlv-bot@local"
+          git add results/d8_opt7_catqpe.json
+          git commit -m "[skip ci] T71 opt7+catqpe result" || echo "nothing"
+          git pull --rebase && git push || (git pull --rebase && git push)
