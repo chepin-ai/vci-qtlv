@@ -21,6 +21,10 @@ WATCH = [
 ]
 PRIO = re.compile(r"(DEMAND|TASK|KEY-INSTALL|RECEIPT|VOTE|RULING|VERDICT|CAST|FIELD|REQ-|CONSULT|ASK|ESCAL|ROOT)", re.I)
 NOPRIO = re.compile(r"^ECHO-ANS-", re.I)  # T68: 闭环指针件不入PRIO(自身即闭环标记)
+# T70: qfa互评器课(FRAC seq7/8 malformed ts '2026-09-27T04:2Z')——戳格亦属链面,malformed即残证;机检闸
+TS_RE = re.compile(r"^(\d{8}T\d{6}Z|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z)$")
+def ts_ok(s):
+    return isinstance(s, str) and bool(TS_RE.match(s))
 
 def gh(repo, path, auth):
     # 钥亡不停车·请求级降级: FINE 先试, 403/401 即换 QI_READ 复测 (T62 RCA 卡一)
@@ -104,9 +108,11 @@ def main():
             closed.append(pid); del prio_open[pid]
         elif prio_open[pid].get("hits", 0) > 20:
             del prio_open[pid]  # 陈情20拍后归档, 防胀
-    open_lines = ["    - [OPEN-PRIO] %s ← %s (首见 %s, 旗标×%d)" % (
-        p.get("file", pid.split("::",1)[-1]), p.get("where", "?"), p.get("first_seen", "?")[:15], p.get("hits", 1))
+    open_lines = ["    - [OPEN-PRIO] %s ← %s (首见 %s%s, 旗标×%d)" % (
+        p.get("file", pid.split("::",1)[-1]), p.get("where", "?"), p.get("first_seen", "?")[:15],
+        "" if ts_ok(p.get("first_seen", "")) else " TS-MALFORMED", p.get("hits", 1))
         for p in sorted(prio_open.values(), key=lambda e: e.get("first_seen", ""))[:15]]
+    assert ts_ok(TS), "machine ts malformed"  # 本机戳自检: malformed即败,不洗链
     body = (["CLASSIFY: L0(qtlv SI3-LOOP intake 机层摘要·席判位空挂SI1)", "",
             "## 未闭环 PRIO 滚动台账 (拍首必读律·机层提醒)"] + (open_lines or ["    - 无"]) + ["",
             "# INTAKE-%s ｜ qtlv si3_intake v1.0" % TS, "",
