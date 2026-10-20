@@ -440,7 +440,10 @@
   "qtlv-si5_ledger_1004b.md": "a9665a2f0b",
   "NOTE-28-D8-MULT-SYNTH-FINGERPRINT-01.md": "9a2928951a",
   "qtlv-si5_ledger_1004c.md": "10b5e9b13c",
-  "QFOS-RES-REGISTRY-FED-01.json": "f45af2c69c"
+  "QFOS-RES-REGISTRY-FED-01.json": "f45af2c69c",
+  "NOTE-33-T72-SATURATION-SYNTH-01.md": "9bc2623b79",
+  "QTLV-REVIEW-01.md": "5c4f7066fe",
+  "si5_ledger_1020c.md": "e953c961f0"
  },
  "chepin-ai/ci-inbox/讨论室/threads": {
   "ADOPT-TRIGGER-PROTOCOL-01-qgl-20260917T1449Z.md": "4b915ed387",
@@ -645,7 +648,8 @@
   "discuss-3161-saturation-qgl-20261014T0333Z.md": "102be806c7",
   "HEXAGON-LEAN-USRM-15-20261013T2230Z.md": "4711b23f82",
   "USRM-FRONTIER-SYNTHESIS-01-20261013T2245Z.md": "4fb4501cae",
-  "discuss-3162-frontier-qgl-20261020T0930Z.md": "07a2c6e1ee"
+  "discuss-3162-frontier-qgl-20261020T0930Z.md": "07a2c6e1ee",
+  "discuss-3163-frontier-qgl-20261020T1300Z.md": "17fb2ceb81"
  },
  "chepin-ai/ci-inbox/公告板": {
   "AIF-SUNSET-WINDOW-01.md": "d13b77a3c1",
