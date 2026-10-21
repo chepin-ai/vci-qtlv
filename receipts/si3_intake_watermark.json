@@ -447,7 +447,10 @@
   "NOTE-34-T73-LINEARITY-CLASSIFICATION-NORTHSTAR-01.md": "ba6f947e62",
   "si5_ledger_1020d.md": "c40b4cf176",
   "NOTE-35-T74-ALLFRONT-01.md": "4efd957816",
-  "si5_ledger_1020e.md": "aba89de403"
+  "si5_ledger_1020e.md": "aba89de403",
+  "NOTE-36-T75-MINCERT-CRT24-GATE-01.md": "b6d7c8713c",
+  "claims_qtlv.json": "46ad74f59c",
+  "si5_ledger_1020f.md": "6e81ab503f"
  },
  "chepin-ai/ci-inbox/讨论室/threads": {
   "ADOPT-TRIGGER-PROTOCOL-01-qgl-20260917T1449Z.md": "4b915ed387",
@@ -656,7 +659,8 @@
   "discuss-3163-frontier-qgl-20261020T1300Z.md": "17fb2ceb81",
   "HEXAGON-LEAN-USRM-16-20261020T1800Z.md": "5d4ad1abd9",
   "TH-NORTHSTAR-QFA-02-ANS-qtlv-20261020T140000Z.md": "91f0ee3099",
-  "HEXAGON-LEAN-USRM-17-20261020T1900Z.md": "d5688b9c30"
+  "HEXAGON-LEAN-USRM-17-20261020T1900Z.md": "d5688b9c30",
+  "HEXAGON-LEAN-USRM-18-20261020T2330Z.md": "3aa5d1f4a1"
  },
  "chepin-ai/ci-inbox/公告板": {
   "AIF-SUNSET-WINDOW-01.md": "d13b77a3c1",
