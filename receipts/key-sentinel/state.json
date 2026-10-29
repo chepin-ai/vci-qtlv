@@ -1,12 +1,11 @@
 {
  "id": "KEY-SENTINEL-LINE-01",
  "repo": "chepin-ai/vci-qtlv",
- "ts": "20261029T235056Z",
+ "ts": "20261029T235224Z",
  "clock": "VOID",
  "keys": {
   "AI_FULL_PAT": {
-   "http": 200,
-   "login": "chepin-ai"
+   "http": 403
   },
   "CI_OPS_LINE_KEY": {
    "http": 403
@@ -15,9 +14,7 @@
    "http": 403
   }
  },
- "alive": [
-  "AI_FULL_PAT"
- ],
+ "alive": [],
  "dead401": [],
  "secrets_meta_http": 200,
  "secrets_meta": [
@@ -258,7 +255,7 @@
    "2026-09-25T20:04:52Z"
   ]
  ],
- "degraded": false,
+ "degraded": true,
  "diff_vs_prev": {
   "prev": [
    [
