@@ -110,5 +110,12 @@
   "last_seen": "20261019T170151Z",
   "file": "FIELD-USRM-01.json",
   "where": "chepin-ai/ci-inbox/shared"
+ },
+ "chepin-ai/ci-inbox/公告板::NUDGE-KEYREQ-OPENQ-LGT-02-20261103T032635Z.md": {
+  "first_seen": "20261103T100758Z",
+  "hits": 1,
+  "last_seen": "20261103T100758Z",
+  "file": "NUDGE-KEYREQ-OPENQ-LGT-02-20261103T032635Z.md",
+  "where": "chepin-ai/ci-inbox/公告板"
  }
 }
