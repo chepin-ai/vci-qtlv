@@ -117,5 +117,12 @@
   "last_seen": "20261103T100758Z",
   "file": "NUDGE-KEYREQ-OPENQ-LGT-02-20261103T032635Z.md",
   "where": "chepin-ai/ci-inbox/公告板"
+ },
+ "chepin-ai/ci-inbox/公告板::AD27-FED-WILDQ-20261121T035609Z-broadcast.md": {
+  "first_seen": "20261121T040040Z",
+  "hits": 1,
+  "last_seen": "20261121T040040Z",
+  "file": "AD27-FED-WILDQ-20261121T035609Z-broadcast.md",
+  "where": "chepin-ai/ci-inbox/公告板"
  }
 }
